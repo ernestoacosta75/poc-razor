@@ -1,6 +1,5 @@
 @using Poc.RCL.Models
 @using System.Text.Json
-@using System.Text.Json.Serialization
 
 @{
     var jsonOptions = new JsonSerializerOptions
@@ -102,7 +101,7 @@
             rowAlternationEnabled: false,
             selection: { mode: "multiple", showCheckBoxesMode: "always" },
             paging: { enabled: false },
-            sorting: { mode: "single" },
+            sorting: { mode: "single" },5
             filterRow: { visible: false },
             headerFilter: { visible: false },
             columnAutoWidth: false,

@@ -7,6 +7,6 @@ namespace Poc.RCL.Components
     {
         [Parameter]
         [EditorRequired]
-        public MetricKpi Item { get; set; } = default!;
+        public MetricKpiDto Item { get; set; } = null!;
     }
 }

@@ -1,14 +1,14 @@
 ﻿@using Poc.RCL.Models
 
 @{
-    // 1. Facendo il calcolo necessario: (Oggi - Ieri) / Ieri * 100
+    // Calcoli per la trendline (oppure arriverà dalla fact table nel database?)
     double rawTrend = 0;
     if (Data != null && Data.YesterdayCountAtSameHour > 0)
     {
         rawTrend = ((double)(Data.TodayCount - Data.YesterdayCountAtSameHour) / Data.YesterdayCountAtSameHour) * 100;
     }
 
-    // 2. Regole di visualizzazione basate sulla performance
+    // Regole di visualizzazione basate sulla performance
     var isPositive = rawTrend >= 0;
     var trendSign = isPositive ? "+" : "";
     var badgeBgColor = isPositive ? "#ecfdf5" : "#fef2f2";

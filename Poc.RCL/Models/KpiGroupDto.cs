@@ -4,7 +4,7 @@
         string Title, 
         string HeaderIcon, 
         string AccentColor, 
-        List<MetricKpi> Metrics,
+        List<MetricKpiDto> Metrics,
         bool IsGrid = false
     );
 }

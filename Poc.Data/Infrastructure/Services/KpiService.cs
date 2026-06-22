@@ -56,8 +56,8 @@ namespace Poc.Data.Infrastructure.Services
                     AccentColor: "#1e40af", // Blue
                     Metrics: new()
                     {
-                        new MetricKpi("Sailing", ["SAI"], "2", "bi bi-moisture text-primary"),
-                        new MetricKpi("Berthing", ["ARR"], "1", "bi bi-anchor text-primary"),
+                        new MetricKpiDto("Sailing", ["SAI"], "2", "bi bi-moisture text-primary"),
+                        new MetricKpiDto("Berthing", ["ARR"], "1", "bi bi-anchor text-primary"),
                     }
                 ),
                 new KpiGroupDto(
@@ -66,8 +66,8 @@ namespace Poc.Data.Infrastructure.Services
                     AccentColor: "#8b5cf6", // Porpora
                     Metrics: new()
                     {
-                        new MetricKpi("At Sea", ["IN1"], "0", "bi bi-waves"),
-                        new MetricKpi("At Port", ["PNO"], "0", "bi bi-building"),
+                        new MetricKpiDto("At Sea", ["IN1"], "0", "bi bi-waves"),
+                        new MetricKpiDto("At Port", ["PNO"], "0", "bi bi-building"),
                     }
                 ),
                 new KpiGroupDto(
@@ -76,9 +76,9 @@ namespace Poc.Data.Infrastructure.Services
                     AccentColor: "#06b6d4", // Cyan
                     Metrics: new()
                     {
-                        new MetricKpi("COSP", ["COSP"], "1", "bi bi-play-circle-fill text-info"),
-                        new MetricKpi("EOSP", ["EOSP"], "2", "bi bi-stop-circle-fill text-info"),
-                        new MetricKpi("Transit", ["EOT"], "2", "bi bi-arrow-left-right")
+                        new MetricKpiDto("COSP", ["COSP"], "1", "bi bi-play-circle-fill text-info"),
+                        new MetricKpiDto("EOSP", ["EOSP"], "2", "bi bi-stop-circle-fill text-info"),
+                        new MetricKpiDto("Transit", ["EOT"], "2", "bi bi-arrow-left-right")
                     }
                 ),
                 new KpiGroupDto(
@@ -87,8 +87,8 @@ namespace Poc.Data.Infrastructure.Services
                     AccentColor: "#b45309", // Ambra
                     Metrics: new()
                     {
-                        new MetricKpi("Refueling", ["BRF"], "1", "bi bi-droplet-fill text-warning"),
-                        new MetricKpi("Bunker Req.", ["BUN"], "0", "bi bi-file-earmark-text")
+                        new MetricKpiDto("Refueling", ["BRF"], "1", "bi bi-droplet-fill text-warning"),
+                        new MetricKpiDto("Bunker Req.", ["BUN"], "0", "bi bi-file-earmark-text")
                     }
                 ),
                 new KpiGroupDto(
@@ -97,11 +97,11 @@ namespace Poc.Data.Infrastructure.Services
                     AccentColor: "#10b981", // Verde
                     Metrics: new()
                     {
-                        new MetricKpi("Delays", [], "0", "bi bi-hourglass-split"),
-                        new MetricKpi("Sludge", ["SLP"], "1", "bi bi-trash"),
-                        new MetricKpi("EGCS", ["EGCS"], "1", "bi bi-wind"),
-                        new MetricKpi("Survey", [], "0", "bi bi-clipboard-check"),
-                        new MetricKpi("Shore Power", ["SPW"], "0", "bi bi-lightning-charge")
+                        new MetricKpiDto("Delays", [], "0", "bi bi-hourglass-split"),
+                        new MetricKpiDto("Sludge", ["SLP"], "1", "bi bi-trash"),
+                        new MetricKpiDto("EGCS", ["EGCS"], "1", "bi bi-wind"),
+                        new MetricKpiDto("Survey", [], "0", "bi bi-clipboard-check"),
+                        new MetricKpiDto("Shore Power", ["SPW"], "0", "bi bi-lightning-charge")
                     },
                     IsGrid: true
                 )
