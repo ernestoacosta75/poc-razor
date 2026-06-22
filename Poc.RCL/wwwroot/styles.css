@@ -26,12 +26,14 @@
 .kpi-dashboard-row {
     display: flex;
     flex-wrap: wrap;
+    /*flex-wrap: nowrap;*/
     gap: 1.25rem;
     padding: 1.5rem;
     background-color: #f8f9fa; /* Light neutral canvas background */
     font-family: var(--font-family);
     width: 100%;
     box-sizing: border-box;
+    overflow-x: auto;
 }
 
 /* Base Card Styling */
