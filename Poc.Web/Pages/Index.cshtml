@@ -1,5 +1,6 @@
 @page
 @model IndexModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Home page";
 }
@@ -13,83 +14,9 @@
     }
 </div>
 
-<div class="messages-grid-wrapper">
-
-    <div class="messages-grid-toolbar">
-        <span class="messages-grid-count">
-            Showing <strong id="grid-count">0</strong> of <strong>@Model.Messages.Count</strong> messages
-        </span>
-        <button class="messages-grid-sort-btn" onclick="toggleSyncDateSort()">
-            <i class="bi bi-filter"></i> Sync Date <span id="sort-arrow">↓</span>
-        </button>
-        <button class="messages-grid-clear-btn" onclick="clearGridFilter()">
-            <i class="bi bi-x-circle"></i> Clear filter
-        </button>
-    </div>
-
-    @(Html.DevExtreme().DataGrid<MessageDto>()
-        .ID("messages-grid")
-        .DataSource(d => d.Array().Data(Model.Messages).Key("Id"))
-        .ShowBorders(false)
-        .ShowRowLines(true)
-        .ShowColumnLines(false)
-        .RowAlternationEnabled(false)
-        .Paging(p => p.PageSize(10))
-        .Pager(p => p
-            .Visible(true)
-            .ShowPageSizeSelector(true)
-            .AllowedPageSizes(new[] { 5, 10, 20 })
-        )
-        .Sorting(s => s.Mode(GridSortingMode.Single))
-        .Selection(s => s.Mode(SelectionMode.Multiple).ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.Always))
-        .Columns(cols => {
-            cols.Add()
-                .DataField("vesselName")
-                .Caption(Html.DisplayNameFor(m => m.Messages.FirstOrDefault()!.VesselName))
-                .MinWidth(200)
-                .CellTemplate(new JS("cellRenderers.vessel"));
-
-            cols.Add()
-                .DataField("voyageCode")
-                .Caption(Html.DisplayNameFor(m => m.Messages.FirstOrDefault()!.VoyageCode))
-                .Width(110)
-                .Alignment(HorizontalAlignment.Center)
-                .CellTemplate(new JS("cellRenderers.voyage"));
-
-            cols.Add()
-                .DataField("messageType")
-                .Caption(Html.DisplayNameFor(m => m.Messages.FirstOrDefault()!.MessageType))
-                .Width(155)
-                .Alignment(HorizontalAlignment.Center)
-                .CellTemplate(new JS("cellRenderers.type"));
-
-            cols.Add()
-                .DataField("messageDate")
-                .Caption(Html.DisplayNameFor(m => m.Messages.FirstOrDefault()!.MessageDate))
-                .Width(170)
-                .DataType(GridColumnDataType.Date)
-                .CellTemplate(new JS("cellRenderers.date"));
-
-            cols.Add()
-                .DataField("syncDate")
-                .Visible(false)
-                .SortOrder(SortOrder.Desc);
-
-            cols.Add()
-                .DataField("fromPort")
-                .Caption(Html.DisplayNameFor(m => m.Messages.FirstOrDefault()!.FromPort))
-                .MinWidth(200)
-                .CellTemplate(new JS("cellRenderers.route"));
-
-            cols.Add()
-                .Caption("STATUS")
-                .Width(110)
-                .Alignment(HorizontalAlignment.Center)
-                .CellTemplate(new JS("cellRenderers.status"));
-        })
-    )
-
-</div>
+<component type="typeof(Poc.RCL.Components.MessagesGrid)" 
+           render-mode="Static" 
+           param-Data="Model.Messages" />
 
 @section Scripts {
     <script>
@@ -173,6 +100,7 @@
 
         // Mappa la funzione globale richiesta dal bottone HTML al metodo dell'oggetto
         function clearGridFilter() {
+            console.log("Global Clear: Invocazione reset filtri tramite Dashboard");
             Dashboard.clearFilter();
         }
     </script>

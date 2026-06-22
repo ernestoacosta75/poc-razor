@@ -7,6 +7,7 @@
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
     };
+    // Utilizza le variabili provenienti dal code-behind esistente
     var json = JsonSerializer.Serialize(Data ?? new List<MessageDto>(), jsonOptions);
     var count = (Data ?? new List<MessageDto>()).Count;
 }
@@ -18,7 +19,7 @@
         <button class="messages-grid-sort-btn" onclick="toggleSyncDateSort()">
             <i class="bi bi-filter"></i> Sync Date <span id="sort-arrow">↓</span>
         </button>
-        <button class="messages-grid-clear-btn" onclick="kpiFilterGrid(null)" title="Clear filter">
+        <button class="messages-grid-clear-btn" onclick="clearGridFilter()" title="Clear filter">
             <i class="bi bi-x-circle"></i> Clear filter
         </button>
     </div>
@@ -40,7 +41,6 @@
             return;
         }
 
-        // Remove empty strings (e.g. labels with value "0" that map to no messages)
         var filtered = types.filter(function(t) { return t && t.trim() !== ""; });
         if (filtered.length === 0) { instance.clearFilter(); return; }
 
@@ -66,28 +66,33 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        var data = JSON.parse(document.getElementById("@_dataScriptId").textContent);
+        var scriptEl = document.getElementById("@_dataScriptId");
+        if (!scriptEl) return;
+
+        var data = JSON.parse(scriptEl.textContent);
 
         var typeConfig = {
-            "EOSP":        { color: "#0891b2", bg: "#e0f2fe", icon: "bi bi-stop-circle-fill"    },
-            "COSP":        { color: "#0ea5e9", bg: "#dbeafe", icon: "bi bi-play-circle-fill"    },
-            "Sailing":     { color: "#3b82f6", bg: "#eff6ff", icon: "bi bi-moisture"            },
-            "Berthing":    { color: "#10b981", bg: "#ecfdf5", icon: "bi bi-anchor"              },
-            "Transit":     { color: "#8b5cf6", bg: "#f5f3ff", icon: "bi bi-arrow-left-right"   },
-            "Refueling":   { color: "#f59e0b", bg: "#fffbeb", icon: "bi bi-droplet-fill"        },
-            "Sludge":      { color: "#78716c", bg: "#f5f5f4", icon: "bi bi-trash"              },
-            "EGCS":        { color: "#06b6d4", bg: "#ecfeff", icon: "bi bi-wind"               },
-            "At Sea":      { color: "#0ea5e9", bg: "#f0f9ff", icon: "bi bi-water"              },
-            "At Port":     { color: "#64748b", bg: "#f8fafc", icon: "bi bi-building"           },
-            "Delays":      { color: "#ef4444", bg: "#fef2f2", icon: "bi bi-hourglass-split"    },
-            "Survey":      { color: "#84cc16", bg: "#f7fee7", icon: "bi bi-clipboard-check"    },
-            "Shore Power": { color: "#8b5cf6", bg: "#faf5ff", icon: "bi bi-lightning-charge"   },
-            "Bunker Req.": { color: "#f97316", bg: "#fff7ed", icon: "bi bi-file-earmark-text"  }
+            "eosp":        { color: "#0891b2", bg: "#e0f2fe", icon: "bi bi-stop-circle-fill"    },
+            "cosp":        { color: "#0ea5e9", bg: "#dbeafe", icon: "bi bi-play-circle-fill"    },
+            "sailing":     { color: "#3b82f6", bg: "#eff6ff", icon: "bi bi-moisture"            },
+            "berthing":    { color: "#10b981", bg: "#ecfdf5", icon: "bi bi-anchor"              },
+            "transit":     { color: "#8b5cf6", bg: "#f5f3ff", icon: "bi bi-arrow-left-right"   },
+            "refueling":   { color: "#f59e0b", bg: "#fffbeb", icon: "bi bi-droplet-fill"        },
+            "sludge":      { color: "#78716c", bg: "#f5f5f4", icon: "bi bi-trash"              },
+            "egcs":        { color: "#06b6d4", bg: "#ecfeff", icon: "bi bi-wind"               },
+            "at sea":      { color: "#0ea5e9", bg: "#f0f9ff", icon: "bi bi-water"              },
+            "at port":     { color: "#64748b", bg: "#f8fafc", icon: "bi bi-building"           },
+            "delays":      { color: "#ef4444", bg: "#fef2f2", icon: "bi bi-hourglass-split"    },
+            "survey":      { color: "#84cc16", bg: "#f7fee7", icon: "bi bi-clipboard-check"    },
+            "shore power": { color: "#8b5cf6", bg: "#faf5ff", icon: "bi bi-lightning-charge"   },
+            "bunker req.": { color: "#f97316", bg: "#fff7ed", icon: "bi bi-file-earmark-text"  }
         };
 
         var months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
         function fmtSync(iso) {
+            if (!iso) return "";
             var d = new Date(iso);
+            if (isNaN(d.getTime())) return "";
             var pad = function(n) { return String(n).padStart(2, "0"); };
             return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
         }
@@ -101,7 +106,7 @@
             rowAlternationEnabled: false,
             selection: { mode: "multiple", showCheckBoxesMode: "always" },
             paging: { enabled: false },
-            sorting: { mode: "single" },5
+            sorting: { mode: "single" },
             filterRow: { visible: false },
             headerFilter: { visible: false },
             columnAutoWidth: false,
@@ -112,18 +117,27 @@
                     caption: "VESSEL",
                     minWidth: 200,
                     cellTemplate: function(el, info) {
-                        var d = info.data;
-                        el.innerHTML =
+                        var d = info.data || {};
+                        // Mappatura sicura case-insensitive per i DTO C#
+                        var vName = d.vesselName || d.VesselName || "";
+                        var vColor = d.vesselColor || d.VesselColor || "#6b7280";
+                        var vInitials = d.vesselInitials || d.VesselInitials || "";
+                        var cEmail = d.captainEmail || d.CaptainEmail || "";
+                        var office = d.office || d.Office || "";
+
+                        // Modificato da el.innerHTML a el.html() perché el è un oggetto jQuery
+                        el.html(
                             '<div style="display:flex;align-items:center;gap:10px;padding:4px 0;">' +
-                                '<div style="width:38px;height:38px;border-radius:8px;background:' + d.vesselColor + ';' +
+                                '<div style="width:38px;height:38px;border-radius:8px;background:' + vColor + ';' +
                                     'color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;' +
-                                    'justify-content:center;flex-shrink:0;">' + d.vesselInitials + '</div>' +
+                                    'justify-content:center;flex-shrink:0;">' + vInitials + '</div>' +
                                 '<div>' +
-                                    '<div style="font-weight:600;font-size:13px;color:#111827;">' + d.vesselName + '</div>' +
-                                    '<div style="font-size:11px;color:#6b7280;">' + d.captainEmail + '</div>' +
-                                    '<div style="font-size:11px;color:#9ca3af;">' + d.office + '</div>' +
+                                    '<div style="font-weight:600;font-size:13px;color:#111827;">' + vName + '</div>' +
+                                    '<div style="font-size:11px;color:#6b7280;">' + cEmail + '</div>' +
+                                    '<div style="font-size:11px;color:#9ca3af;">' + office + '</div>' +
                                 '</div>' +
-                            '</div>';
+                            '</div>'
+                        );
                     }
                 },
                 {
@@ -132,11 +146,14 @@
                     width: 100,
                     alignment: "center",
                     cellTemplate: function(el, info) {
-                        el.innerHTML =
+                        var d = info.data || {};
+                        var val = info.value || d.voyageCode || d.VoyageCode || "";
+                        el.html(
                             '<span style="background:#fef9c3;color:#854d0e;border:1px solid #fde047;' +
                                 'border-radius:4px;padding:3px 8px;font-size:12px;font-weight:600;">' +
-                                info.value +
-                            '</span>';
+                                val +
+                            '</span>'
+                        );
                     }
                 },
                 {
@@ -145,14 +162,19 @@
                     width: 150,
                     alignment: "center",
                     cellTemplate: function(el, info) {
-                        var cfg = typeConfig[info.value] || { color: "#6b7280", bg: "#f3f4f6", icon: "bi bi-circle" };
-                        el.innerHTML =
+                        var d = info.data || {};
+                        var val = info.value || d.messageType || d.MessageType || "";
+                        var stringVal = String(val).toLowerCase().trim();
+
+                        var cfg = typeConfig[stringVal] || { color: "#6b7280", bg: "#f3f4f6", icon: "bi bi-circle" };
+                        el.html(
                             '<span style="background:' + cfg.bg + ';color:' + cfg.color + ';border-radius:20px;' +
                                 'padding:4px 12px;font-size:12px;font-weight:600;display:inline-flex;' +
                                 'align-items:center;gap:5px;">' +
                                 '<i class="' + cfg.icon + '"></i>' +
-                                info.value.toUpperCase() +
-                            '</span>';
+                                stringVal.toUpperCase() +
+                            '</span>'
+                        );
                     }
                 },
                 {
@@ -161,23 +183,37 @@
                     width: 165,
                     dataType: "date",
                     cellTemplate: function(el, info) {
-                        var d = info.data;
-                        var dt = new Date(d.messageDate);
-                        el.innerHTML =
+                        var d = info.data || {};
+                        var rawDate = d.messageDate || d.MessageDate;
+                        var mTime = d.messageTime || d.MessageTime || "00:00";
+                        var sDate = d.syncDate || d.SyncDate || "";
+
+                        if (!rawDate) {
+                            el.html("<div>-</div>");
+                            return;
+                        }
+
+                        var dt = new Date(rawDate);
+                        var day = !isNaN(dt.getDate()) ? dt.getDate() : "";
+                        var monthLabel = !isNaN(dt.getMonth()) ? (months[dt.getMonth()] || "") : "";
+                        var year = !isNaN(dt.getFullYear()) ? dt.getFullYear() : "";
+
+                        el.html(
                             '<div style="padding:2px 0;">' +
                                 '<div style="display:flex;align-items:baseline;gap:6px;">' +
-                                    '<span style="font-size:22px;font-weight:700;color:#f97316;">' + dt.getDate() + '</span>' +
+                                    '<span style="font-size:22px;font-weight:700;color:#f97316;">' + day + '</span>' +
                                     '<div style="font-size:11px;color:#6b7280;line-height:1.3;">' +
-                                        months[dt.getMonth()] + '<br>' + dt.getFullYear() +
+                                        monthLabel + '<br>' + year +
                                     '</div>' +
                                     '<span style="font-size:12px;background:#f3f4f6;color:#374151;' +
-                                        'border-radius:4px;padding:2px 6px;margin-left:2px;">' + d.messageTime + '</span>' +
+                                        'border-radius:4px;padding:2px 6px;margin-left:2px;">' + mTime + '</span>' +
                                 '</div>' +
                                 '<div style="display:flex;align-items:center;gap:4px;margin-top:3px;font-size:11px;color:#6b7280;">' +
                                     '<i class="bi bi-arrow-repeat" style="color:#9ca3af;"></i>' +
-                                    fmtSync(d.syncDate) +
+                                    fmtSync(sDate) +
                                 '</div>' +
-                            '</div>';
+                            '</div>'
+                        );
                     }
                 },
                 {
@@ -190,46 +226,47 @@
                     caption: "ROUTE",
                     minWidth: 200,
                     cellTemplate: function(el, info) {
-                        var d = info.data;
-                        var arrow = d.isTransitRoute
+                        var d = info.data || {};
+                        var fromP = d.fromPort || d.FromPort || "";
+                        var toP = d.toPort || d.ToPort || "";
+                        var isTransit = d.isTransitRoute || d.IsTransitRoute || false;
+
+                        var arrow = isTransit
                             ? '<i class="bi bi-arrow-left-right" style="color:#8b5cf6;"></i>'
                             : '<i class="bi bi-arrow-right" style="color:#9ca3af;"></i>';
-                        var fromIcon = d.isTransitRoute
+                        var fromIcon = isTransit
                             ? '<i class="bi bi-arrow-left-right" style="color:#f59e0b;font-size:13px;"></i>'
                             : '<i class="bi bi-geo-alt-fill" style="color:#f59e0b;font-size:13px;"></i>';
-                        el.innerHTML =
+
+                        el.html(
                             '<div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;">' +
                                 fromIcon +
-                                '<span style="color:#1f2937;">' + d.fromPort + '</span>' +
+                                '<span style="color:#1f2937;">' + fromP + '</span>' +
                                 arrow +
                                 '<i class="bi bi-flag-fill" style="color:#6b7280;font-size:12px;"></i>' +
-                                '<span style="color:#1f2937;">' + d.toPort + '</span>' +
-                            '</div>';
+                                '<span style="color:#1f2937;">' + toP + '</span>' +
+                            '</div>'
+                        );
                     }
                 },
                 {
                     caption: "STATUS",
                     width: 110,
                     alignment: "center",
-                    cellTemplate: function(el, info) {
-                        el.innerHTML =
-                            '<span style="background:#dcfce7;color:#166534;border-radius:20px;' +
-                                'padding:3px 12px;font-size:11px;font-weight:600;">Sent</span>';
-                    }
-                },
-                {
-                    caption: "ACTIONS",
-                    width: 70,
-                    alignment: "center",
-                    allowSorting: false,
                     cellTemplate: function(el) {
-                        el.innerHTML =
-                            '<span style="color:#9ca3af;font-size:20px;cursor:pointer;letter-spacing:1px;">···</span>';
+                        el.html(
+                            '<span style="background:#dcfce7;color:#166534;border-radius:20px;' +
+                                'padding:3px 12px;font-size:11px;font-weight:600;">Sent</span>'
+                        );
                     }
                 }
             ],
             onContentReady: function(e) {
                 e.element.find(".dx-datagrid-borders").css("border", "none");
+
+                // Aggiorna dinamicamente il contatore Toolbar in alto
+                var visibleCount = e.component.getVisibleRows().length;
+                $("#grid-count").text(visibleCount);
             }
         });
     });
