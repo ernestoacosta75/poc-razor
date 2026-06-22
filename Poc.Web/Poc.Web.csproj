@@ -7,14 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Pages\Index.cshtmlOLD" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Pages\Index.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Poc.Data\Poc.Data.csproj" />
     <ProjectReference Include="..\Poc.RCL\Poc.RCL.csproj" />
   </ItemGroup>

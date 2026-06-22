@@ -1,0 +1,92 @@
+@using DevExpress.Blazor
+@using Poc.RCL.Models
+@inject IJSRuntime JS
+
+<DxGrid @ref="GridInstance"
+        Data="@FilteredMessages"
+        PageSize="10"
+        ShowSearchBox="false"
+        AllowSelectRowByClick="true"
+        SelectionMode="GridSelectionMode.Multiple"
+        SelectAllCheckboxMode="GridSelectAllCheckboxMode.Page"
+        CssClass="w-100 messages-quickgrid">
+    <Columns>
+        <DxGridSelectionColumn Width="45px" AllowSelectAll="true" />
+
+        <DxGridDataColumn FieldName="VesselName" Caption="VESSEL" MinWidth="220">
+            <CellDisplayTemplate>
+                @{
+                    var d = (MessageDto)context.DataItem;
+                }
+                <div class="qg-vessel-cell">
+                    <div class="qg-avatar" style="background: @d.VesselColor;">
+                        @d.VesselInitials
+                    </div>
+                    <div>
+                        <div class="qg-vessel-name">@d.VesselName</div>
+                        <div class="qg-vessel-sub">@d.CaptainEmail</div>
+                        <div class="qg-vessel-sub" style="color: #9ca3af;">@d.Office</div>
+                    </div>
+                </div>
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
+
+        <DxGridDataColumn FieldName="VoyageCode" Caption="VOYAGE" Width="100px" Alignment="GridCellAlignment.Center">
+            <CellDisplayTemplate>
+                @{
+                    var d = (MessageDto)context.DataItem;
+                }
+                <span class="qg-badge-voyage">
+                    @(string.IsNullOrWhiteSpace(d.VoyageCode) ? "-" : d.VoyageCode)
+                </span>
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
+
+        <DxGridDataColumn FieldName="MessageType" Caption="TYPE" Width="130px" Alignment="GridCellAlignment.Center">
+            <CellDisplayTemplate>
+                @{
+                    var d = (MessageDto)context.DataItem;
+                }
+                <span class="qg-badge-type @d.MessageType.ToLower()">
+                    @d.MessageType.ToUpper()
+                </span>
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
+
+        <DxGridDataColumn FieldName="MessageDate" Caption="DATE" Width="160px">
+            <CellDisplayTemplate>
+                @{
+                    var d = (MessageDto)context.DataItem;
+                }
+                <div style="font-size: 12.5px; font-weight: 500;">
+                    <strong style="color: #ef4444; font-size: 15px;">@d.MessageDate.ToString("dd")</strong>
+                    <span style="text-transform: uppercase; font-size: 11px; color: #4b5563;">@d.MessageDate.ToString("MMM yyyy")</span>
+                    <span style="color: #4b5563; font-size: 11px; margin-left: 4px;">@d.MessageDate.ToString("HH:mm")</span>
+                </div>
+                <div style="font-size: 11px; color: #9ca3af; display: flex; align-items: center; gap: 3px; margin-top: 2px;">
+                    <i class="bi bi-arrow-repeat"></i> @d.SyncDate.ToString("dd/MM HH:mm")
+                </div>
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
+
+        <DxGridDataColumn FieldName="FromPort" Caption="ROUTE" MinWidth="200">
+            <CellDisplayTemplate>
+                @{
+                    var d = (MessageDto)context.DataItem;
+                }
+                <div class="qg-route">
+                    <i class="bi bi-geo-alt-fill text-warning"></i> @d.FromPort
+                    <i class="bi bi-arrow-right text-muted mx-1"></i>
+                    <i class="bi bi-flag-fill text-secondary"></i> @d.ToPort
+                </div>
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
+
+        <DxGridDataColumn Caption="STATUS" Width="110px" Alignment="GridCellAlignment.Center">
+            <CellDisplayTemplate>
+                <span class="qg-badge-status">Sent</span>
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
+    </Columns>
+</DxGrid>
+

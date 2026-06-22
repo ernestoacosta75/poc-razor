@@ -1,8 +1,72 @@
 @page "/"
-@namespace Poc.Web.Pages
+@using Poc.Web.Pages
+@model IndexModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *, Poc.RCL
 @{
     Layout = "_Layout";
+    ViewData["Title"] = "Home page";
 }
 
-<component type="typeof(Index)" render-mode="Server" />
+<div class="kpi-dashboard-row">
+    <total-messages-card data="Model.MessagesTotalDto" />
+
+    @foreach (var kpiGroup in Model.KpiGroups)
+    {
+        <kpi-card data="kpiGroup" />
+    }
+</div>
+
+<div class="messages-grid-wrapper">
+
+    <div class="messages-grid-toolbar">
+        <span class="messages-grid-count">
+            Showing <strong id="grid-count">@Model.Messages.Count</strong> of <strong>@Model.Messages.Count</strong> messages
+        </span>
+        <button class="messages-grid-sort-btn" onclick="ToggleGridSort()">
+            <i class="bi bi-filter"></i> Sync Date <span id="sort-arrow">↓</span>
+        </button>
+        <button class="messages-grid-clear-btn" onclick="ClearGridFilters()">
+            <i class="bi bi-x-circle"></i> Clear filter
+        </button>
+    </div>
+
+    <div id="blazor-grid-container">
+        <component type="typeof(Poc.Web.Pages.MessagesGridWrapper)"
+                   render-mode="Server"
+                   param-InitialMessages="Model.Messages" />
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        // Intercetta l'evento custom JS generato dalle vecchie KPI card e chiama il C# di Blazor
+        document.addEventListener("kpi-card-filter", (e) => {
+            const datiFiltro = e.detail;
+            if (datiFiltro && datiFiltro.types) {
+                const flatCodes = Array.isArray(datiFiltro.types) ? datiFiltro.types.flat() : [];
+                DotNet.invokeMethodAsync('Poc.Web', 'FiltraggioDaTagHelper', flatCodes);
+            }
+        });
+
+        function ClearGridFilters() {
+            DotNet.invokeMethodAsync('Poc.Web', 'FiltraggioDaTagHelper', []);
+        }
+
+        function ToggleGridSort() {
+            DotNet.invokeMethodAsync('Poc.Web', 'InvertiOrdinamentoData');
+        }
+
+        // Funzioni ponte chiamate da Blazor per aggiornare gli elementi grafici del CSHTML
+        function AggiornaContatoreToolbar(count) {
+            const el = document.getElementById("grid-count");
+            if (el) el.innerText = count;
+        }
+
+        function AggiornaFrecciaOrdinamento(isDesc) {
+            const el = document.getElementById("sort-arrow");
+            if (el) el.innerText = isDesc ? "↓" : "↑";
+        }
+    </script>
+}
