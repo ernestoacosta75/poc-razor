@@ -1,0 +1,53 @@
+﻿@using Poc.RCL.Models
+
+@{
+    // 1. Facendo il calcolo necessario: (Oggi - Ieri) / Ieri * 100
+    double rawTrend = 0;
+    if (Data != null && Data.YesterdayCountAtSameHour > 0)
+    {
+        rawTrend = ((double)(Data.TodayCount - Data.YesterdayCountAtSameHour) / Data.YesterdayCountAtSameHour) * 100;
+    }
+
+    // 2. Regole di visualizzazione basate sulla performance
+    var isPositive = rawTrend >= 0;
+    var trendSign = isPositive ? "+" : "";
+    var badgeBgColor = isPositive ? "#ecfdf5" : "#fef2f2";
+    var badgeTextColor = isPositive ? "#10b981" : "#ef4444";
+}
+
+<div class="kpi-card dx-theme-background-color">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem;">
+        <div class="kpi-header-icon" style="background-color: #fffbeb; color: #d97706;">
+            <i class="dx-icon-email"></i>
+        </div>
+
+        <span class="dx-badge"
+              style="background-color: @badgeBgColor; 
+                    color: @badgeTextColor; 
+                    border-radius: 20px; padding: 0.35rem 0.6rem; font-weight: 700; border: none; 
+                    font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px;">
+
+            <i class="@(isPositive ? "dx-icon-arrowup" : "dx-icon-arrowdown")"></i> @trendSign@rawTrend.ToString("F1")%
+        </span>
+    </div>
+
+    <div class="kpi-summary dx-theme-text-color">@Data?.TodayCount</div>
+    <div class="kpi-summary-sublabel">Total Messages</div>
+
+    <div id="@ElementId" class="kpi-dx-sparkline"></div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        $("#@ElementId").dxSparkline({
+            dataSource: [@string.Join(",", Data?.HourlyTrendPoints ?? [])],
+            type: "splinearea",
+            lineColor: "#fcd34d",
+            areaColor: "rgba(252, 211, 77, 0.12)",
+            lineWidth: 2,
+            showMinMax: false,
+            showFirstLast: false
+        });
+    });
+</script>
+

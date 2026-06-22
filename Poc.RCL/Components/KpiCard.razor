@@ -1,0 +1,37 @@
+@using Poc.RCL.Models
+@using System.Text.Json
+@{
+    var filterTypesJson = JsonSerializer.Serialize(Data.Metrics.Select(m => m.Code).ToList());
+}
+
+<div class="kpi-card" style="border-left: 5px solid @Data.AccentColor">
+
+    <div class="kpi-card-header"
+         style="cursor:pointer;"
+         data-filter-types="@filterTypesJson"
+         onclick="document.dispatchEvent(new CustomEvent('kpi-card-filter',{detail:{types:JSON.parse(this.dataset.filterTypes)}}))">
+        <div class="kpi-header-icon" style="background-color: @(Data.AccentColor)1A; color: @Data.AccentColor;">
+            <i class="@Data.HeaderIcon"></i>
+        </div>
+        <span class="kpi-card-title">@Data.Title.ToUpper()</span>
+    </div>
+
+    @if (Data.IsGrid)
+    {
+        <div class="kpi-grid-2-columns">
+            @foreach (var metric in Data.Metrics)
+            {
+                <MetricKpiItem Item="metric" />
+            }
+        </div>
+    }
+    else
+    {
+        <div class="kpi-card-body">
+            @foreach (var metric in Data.Metrics)
+            {
+                <MetricKpiItem Item="metric" />
+            }
+        </div>
+    }
+</div>

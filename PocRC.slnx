@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Poc.Data/Poc.Data.csproj" Id="d9bfcbbf-8911-4e60-9d10-c965f49e4132" />
+  <Project Path="Poc.RCL/Poc.RCL.csproj" />
+  <Project Path="Poc.Web/Poc.Web.csproj" />
+</Solution>

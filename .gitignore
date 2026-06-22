@@ -1,0 +1,9 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+## DevExtreme license key — never commit
+**/wwwroot/js/dx-license.js

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Maritime Dashboard</title>
+
+    <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/25.2.3/css/dx.common.css">
+    <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/25.2.3/css/dx.light.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script src="https://cdn3.devexpress.com/jslib/25.2.3/js/dx.all.js"></script>
+
+    <script src="https://cdn3.devexpress.com/jslib/25.2.3/js/dx.aspnet.mvc.js"></script>
+    <script src="https://cdn3.devexpress.com/jslib/25.2.3/js/dx.aspnet.data.js"></script>
+
+    <script src="/js/dx-license.js" asp-append-version="true"></script>
+
+    <link rel="stylesheet" href="_content/Poc.RCL/styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/site.css" asp-append-version="true" />
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: system-ui, sans-serif;">
+    <header style="background: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 1rem 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto;">
+            <a asp-page="/Index" style="font-weight: 700; color: #1f2937; text-decoration: none; font-size: 1.2rem;">
+                <i class="dx-icon-preferences" style="margin-right: 6px;"></i>Poc.Web
+            </a>
+            <nav style="display: flex; gap: 1.5rem;">
+                <a asp-page="/Index" style="color: #4b5563; text-decoration: none; font-weight: 500; font-size: 0.9rem;">Home</a>
+                <a asp-page="/Privacy" style="color: #4b5563; text-decoration: none; font-weight: 500; font-size: 0.9rem;">Privacy</a>
+            </nav>
+        </div>
+    </header>
+    <div style="max-width: 1400px; margin: 0 auto; box-sizing: border-box;">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer style="background: #ffffff; border-top: 1px solid #e5e7eb; padding: 1rem 1.5rem; margin-top: 3rem; text-align: center; color: #6b7280; font-size: 0.85rem;">
+        <div>
+            &copy; 2026 - Poc.Web - <a asp-page="/Privacy" style="color: #4b5563;">Privacy</a>
+        </div>
+    </footer>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/grid-templates.js" asp-append-version="true"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
