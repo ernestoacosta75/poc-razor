@@ -7,11 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Pages\Index.cshtmlOLD" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Pages\Index.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Poc.Data\Poc.Data.csproj" />
     <ProjectReference Include="..\Poc.RCL\Poc.RCL.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DevExpress.Blazor" Version="25.2.3" />
     <PackageReference Include="DevExtreme.AspNet.Core" Version="25.2.3" />
   </ItemGroup>
 
