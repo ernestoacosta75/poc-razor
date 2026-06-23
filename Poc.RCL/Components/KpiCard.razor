@@ -21,7 +21,7 @@
         <div class="kpi-grid-2-columns">
             @foreach (var metric in Data.Metrics)
             {
-                <MetricKpiItem Item="metric" />
+                <MetricKpiItem Item="metric" IconColor="@Data.AccentColor" />
             }
         </div>
     }
@@ -30,7 +30,7 @@
         <div class="kpi-card-body">
             @foreach (var metric in Data.Metrics)
             {
-                <MetricKpiItem Item="metric" />
+                <MetricKpiItem Item="metric" IconColor="@Data.AccentColor" />
             }
         </div>
     }

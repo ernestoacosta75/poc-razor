@@ -24,12 +24,11 @@
 
 /* Dashboard Row Container (Acts as the flex-grid wrapper) */
 .kpi-dashboard-row {
-    display: flex;
-    flex-wrap: wrap;
-    /*flex-wrap: nowrap;*/
+    display: flex !important;
+    flex-wrap: nowrap !important;
     gap: 1.25rem;
     padding: 1.5rem;
-    background-color: #f8f9fa; /* Light neutral canvas background */
+    background-color: #f8f9fa;
     font-family: var(--font-family);
     width: 100%;
     box-sizing: border-box;
@@ -40,10 +39,9 @@
 .kpi-card {
     background-color: #ffffff;
     border-radius: var(--card-radius);
-    padding: 1.5rem;
-    min-width: 260px;
-    /* Flex grows/shrinks cleanly to create the multi-card row from the image */
-    flex: 1 1 calc(16.66% - 1.25rem);
+    padding: 0.85rem 0.75rem;
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
     display: flex;
     flex-direction: column;
@@ -63,18 +61,22 @@
     display: flex;
     align-items: center;
     width: 100%;
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.75rem;
     box-sizing: border-box;
 }
 
 .kpi-header-icon {
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+}
+
+.kpi-icon-orange {
+    color: #ea580c !important;
 }
 
 .kpi-card-title {
@@ -83,7 +85,7 @@
     color: var(--text-secondary);
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    margin-left: auto; 
+    margin-left: auto;
 }
 
 /* Standard List Layout Inner Items Container */
@@ -94,57 +96,118 @@
     flex-grow: 1;
 }
 
-/* Metric Pill Row Configuration */
+/* Global Metric Pill Row Configuration (Left Aligned for all cards) */
 .kpi-metric-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start; /* MODIFICATO: Allinea tutto a sinistra di base per tutte le card */
+    gap: 0.4rem; /* Spazio uniforme tra Icona -> Numero -> Label */
     background-color: var(--pill-bg);
     border-radius: var(--pill-radius);
-    padding: 0.6rem 0.85rem;
+    padding: 0.4rem 0.65rem;
     box-sizing: border-box;
     width: 100%;
 }
 
+/* Contenitore interno flex (se presente nel tuo HTML, mantiene l'allineamento a sinistra) */
 .kpi-metric-left {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.4rem;
 }
 
+/* Regola universale per la classe kpi-icon (Garantisce dimensioni identiche per entrambi i mondi) */
 .kpi-icon {
-    font-size: 1.15rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 1.15rem !important;
+    flex-shrink: 0 !important;
+    font-style: normal !important;
+}
+
+.kpi-icon.dx-icon,
+.kpi-header-icon .dx-icon,
+.kpi-icon.bi {
+    font-family: 'bootstrap-icons' !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
 }
 
 .kpi-value {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--text-primary);
+    flex-shrink: 0;
 }
 
+/* Global Label Styling */
 .kpi-label {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     font-weight: 500;
     color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+    flex-grow: 1;
 }
 
 /* ==========================================================================
-   Special Layouts: "Other" Matrix Grid Layout
+   Special Layouts: "Other" Matrix Grid Layout (2 Columns)
    ========================================================================== */
+
 .kpi-grid-2-columns {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-    width: 100%;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.35rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    flex-direction: unset !important;
 }
 
+    /* Ottimizzazione specifica delle pillole dentro la matrice a 2 colonne */
+    .kpi-grid-2-columns .kpi-metric-row {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 0.3rem !important;
+        padding: 0.4rem 0.45rem !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        min-height: 38px;
+    }
 
-.kpi-grid-2-columns .kpi-metric-row:last-child:nth-child(odd) {
-    grid-column: span 2;
-}
+    /* Label specifica per la griglia "Other": permette il wrap su due righe */
+    .kpi-grid-2-columns .kpi-label {
+        font-size: 0.65rem !important;
+        font-weight: 500;
+        white-space: normal !important; /* Permette a Shore Power di andare a capo */
+        line-height: 1.1 !important;
+        text-align: left !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        max-width: unset !important;
+        flex-grow: 1;
+    }
+
+    .kpi-grid-2-columns .kpi-value {
+        font-size: 1rem !important;
+        font-weight: 700;
+        flex-shrink: 0 !important;
+    }
+
+    .kpi-grid-2-columns .kpi-icon {
+        font-size: 0.95rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Forza l'ultimo elemento ("Shore Power") a stare su una sola colonna a sinistra */
+    .kpi-grid-2-columns .kpi-metric-row:last-child:nth-child(odd) {
+        grid-column: 1 / 2 !important;
+    }
 
 /* ==========================================================================
    Special Layouts: "Total Messages" Hero Sparkline Integration
@@ -163,7 +226,8 @@
     color: var(--text-secondary);
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    margin-top: 0.25rem;
+    margin-top: 0.15rem;
+    line-height: 1;
 }
 
 /* Absolute overlay positioning for the DevExtreme Sparkline Vector Wave */
@@ -202,9 +266,9 @@
     flex: 1;
 }
 
-.messages-grid-count strong {
-    color: #111827;
-}
+    .messages-grid-count strong {
+        color: #111827;
+    }
 
 .messages-grid-sort-btn,
 .messages-grid-clear-btn {
@@ -222,10 +286,10 @@
     transition: background 0.15s;
 }
 
-.messages-grid-sort-btn:hover,
-.messages-grid-clear-btn:hover {
-    background: #f3f4f6;
-}
+    .messages-grid-sort-btn:hover,
+    .messages-grid-clear-btn:hover {
+        background: #f3f4f6;
+    }
 
 /* Suppress default DevExtreme grid outer chrome */
 .messages-grid-wrapper .dx-datagrid {
@@ -255,47 +319,47 @@
 .kpi-metric-row:hover {
     background-color: #e9eaec;
 }
+
 /* ═══════════════════════════════════════════════
    QuickGrid — messages-quickgrid
    ═══════════════════════════════════════════════ */
-
 .messages-quickgrid {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
 }
 
-.messages-quickgrid thead tr {
-    background: #f9fafb;
-    border-bottom: 2px solid #e5e7eb;
-}
+    .messages-quickgrid thead tr {
+        background: #f9fafb;
+        border-bottom: 2px solid #e5e7eb;
+    }
 
-.messages-quickgrid thead th {
-    padding: 10px 14px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #6b7280;
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-}
+    .messages-quickgrid thead th {
+        padding: 10px 14px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6b7280;
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+    }
 
-.messages-quickgrid tbody tr {
-    border-bottom: 1px solid #f3f4f6;
-    transition: background 0.1s;
-}
+    .messages-quickgrid tbody tr {
+        border-bottom: 1px solid #f3f4f6;
+        transition: background 0.1s;
+    }
 
-.messages-quickgrid tbody tr:hover {
-    background: #f9fafb;
-}
+        .messages-quickgrid tbody tr:hover {
+            background: #f9fafb;
+        }
 
-.messages-quickgrid tbody td {
-    padding: 10px 14px;
-    vertical-align: middle;
-}
+    .messages-quickgrid tbody td {
+        padding: 10px 14px;
+        vertical-align: middle;
+    }
 
 /* Vessel cell */
 .qg-vessel-cell {
@@ -373,4 +437,36 @@
     display: flex;
     gap: 1rem;
     padding: 1.5rem 1.5rem 0;
+}
+
+@media (max-width: 1400px) {
+    .kpi-grid-2-columns {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.35rem;
+    }
+
+        .kpi-grid-2-columns .kpi-metric-row {
+            padding: 0.35rem 0.45rem !important;
+        }
+
+        .kpi-grid-2-columns .kpi-value {
+            font-size: 1rem !important;
+        }
+
+        .kpi-grid-2-columns .kpi-label {
+            font-size: 0.62rem !important;
+        }
+}
+
+/* Compatibilità icone DevExtreme con il layout KPI */
+.kpi-metric-row .dx-icon {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    position: static !important; /* Rimuove eventuali posizionamenti nativi di DevExtreme */
+    margin: 0 !important; /* Resetta i margini di default di DevExtreme */
+    width: auto !important;
+    height: auto !important;
+    font-size: 1.2rem !important; /* Dimensione visiva ottimale */
+    color: inherit; /* Eredita il colore grigio o personalizzato della riga */
 }

@@ -4,9 +4,14 @@
      style="cursor:pointer;"
      data-filter-types="@JsonSerializer.Serialize(Item.Code)"
      onclick="event.stopPropagation(); document.dispatchEvent(new CustomEvent('kpi-card-filter',{detail:{types: JSON.parse(this.dataset.filterTypes)}}))">
-    <div class="kpi-metric-left">
+    @*     <div class="kpi-metric-left">
         <span class="kpi-icon @Item.Icon"></span>
         <span class="kpi-value">@Item.Value</span>
     </div>
+    <span class="kpi-label">@Item.Label</span> *@
+    <i class="@Item.Icon kpi-icon" style="color: @(string.IsNullOrEmpty(IconColor) ? "currentColor" : IconColor) !important;"></i>
+
+    <span class="kpi-value">@Item.Value</span>
+
     <span class="kpi-label">@Item.Label</span>
 </div>

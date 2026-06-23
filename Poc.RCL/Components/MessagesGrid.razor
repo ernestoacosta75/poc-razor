@@ -163,7 +163,7 @@
                     alignment: "center",
                     cellTemplate: function(el, info) {
                         var d = info.data || {};
-                        var val = info.value || d.messageType || d.MessageType || "";
+                        var val = info.value || d.messageTypeDesc || d.MessageTypeDesc || "";
                         var stringVal = String(val).toLowerCase().trim();
 
                         var cfg = typeConfig[stringVal] || { color: "#6b7280", bg: "#f3f4f6", icon: "bi bi-circle" };

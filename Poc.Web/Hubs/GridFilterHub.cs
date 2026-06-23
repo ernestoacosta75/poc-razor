@@ -24,7 +24,7 @@ namespace Poc.Web.Hubs
 
             var filtered = typeList.Count == 0
                 ? all
-                : all.Where(m => typeList.Contains(m.MessageType)).ToList();
+                : all.Where(m => typeList.Contains(m.MessageTypeCode)).ToList();
 
             await Clients.Caller.SendAsync("ReceiveFilteredMessages", filtered);
         }
