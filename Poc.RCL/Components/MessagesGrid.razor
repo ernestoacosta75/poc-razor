@@ -37,18 +37,18 @@
 
     <div class="messages-grid-toolbar">
         <span class="messages-grid-count">
-            Showing <strong>1–@VisibleCount</strong> of <strong>@TotalCount</strong> messages
+            Showing <strong>@VisibleCount</strong> of <strong>@TotalCount</strong> messages
         </span>
         <button class="messages-grid-sort-btn" @onclick="ToggleSyncDateSort">
             <i class="bi bi-filter"></i> Sync Date <span>@(SyncSortAsc ? "↑" : "↓")</span>
         </button>
-        <button class="messages-grid-clear-btn" @onclick="async () => await ClearGridFilter()" title="Clear filter">
+        <button class="messages-grid-clear-btn" @onclick="ClearGridFilter" title="Clear filter">
             <i class="bi bi-x-circle"></i> Clear filter
         </button>
     </div>
 
     <DxGrid @key="@_dataScriptId"
-            Data="@_messages"
+            Data="@Data"
             KeyFieldName="Id"
             Width="100%"
             ShowGroupPanel="false"

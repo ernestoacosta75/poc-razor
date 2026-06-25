@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Poc.Data.Application.Services;
 using Poc.Data.Infrastructure.Services;
-using Poc.Web.Hubs;
 using DevExpress.Blazor;
 
 namespace Poc.Web
@@ -32,11 +31,6 @@ namespace Poc.Web
                     options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
                 });
 
-            builder.Services.AddSignalR()
-                .AddJsonProtocol(options =>
-                {
-                    options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-                });
 
             var app = builder.Build();
 
@@ -53,7 +47,6 @@ namespace Poc.Web
             app.MapRazorPages().WithStaticAssets();
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
-            app.MapHub<GridFilterHub>("/hubs/messagegrid");
 
             app.Run();
         }

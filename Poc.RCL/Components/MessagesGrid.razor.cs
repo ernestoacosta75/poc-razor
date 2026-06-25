@@ -1,72 +1,29 @@
 using DevExpress.Blazor;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.JSInterop;
 using Poc.RCL.Models;
 
 namespace Poc.RCL.Components
 {
-    public partial class MessagesGrid : IAsyncDisposable
+    public partial class MessagesGrid
     {
         [Parameter]
         public List<MessageDto>? Data { get; set; }
 
-        [Inject]
-        private NavigationManager Navigation { get; set; } = default!;
+        [Parameter]
+        public int TotalCount { get; set; }
 
-        [Inject]
-        private IJSRuntime JS { get; set; } = default!;
+        [Parameter]
+        public EventCallback OnClearFilter { get; set; }
 
         private IGrid? GridInstance { get; set; }
-        private HubConnection? _hubConnection;
-        private IJSObjectReference? _jsModule;
-        private DotNetObjectReference<MessagesGrid>? _dotNetRef;
-        private List<MessageDto> _messages = [];
 
-        private int TotalCount => Data?.Count ?? 0;
-        private int VisibleCount => _messages.Count;
+        private int VisibleCount => Data?.Count ?? 0;
 
         protected bool SyncSortAsc { get; set; } = false;
 
         private record TypeConfig(string Color, string Bg, string Icon);
 
         private string _dataScriptId = $"grid-data-{Guid.NewGuid().ToString("N")[..8]}";
-
-        protected override void OnParametersSet()
-        {
-            _messages = Data ?? [];
-        }
-
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (!firstRender) return;
-
-            // Connessione all'hub SignalR per ricevere i dati filtrati
-            _hubConnection = new HubConnectionBuilder()
-                .WithUrl(Navigation.ToAbsoluteUri("/hubs/messagegrid"))
-                .Build();
-
-            _hubConnection.On<List<MessageDto>>("ReceiveFilteredMessages", async (filtered) =>
-            {
-                _messages = filtered;
-                await InvokeAsync(StateHasChanged);
-            });
-
-            await _hubConnection.StartAsync();
-
-            // Registrazione del listener DOM per l'evento kpi-card-filter
-            _jsModule = await JS.InvokeAsync<IJSObjectReference>(
-                "import", "./_content/Poc.RCL/messagesGrid.js");
-            _dotNetRef = DotNetObjectReference.Create(this);
-            await _jsModule.InvokeVoidAsync("addKpiCardFilter", _dotNetRef);
-        }
-
-        [JSInvokable]
-        public async Task OnKpiCardFilter(string[] types)
-        {
-            if (_hubConnection?.State == HubConnectionState.Connected)
-                await _hubConnection.InvokeAsync("FilterMessages", types);
-        }
 
         protected void ToggleSyncDateSort()
         {
@@ -80,22 +37,7 @@ namespace Poc.RCL.Components
         protected async Task ClearGridFilter()
         {
             GridInstance?.ClearFilter();
-
-            if (_hubConnection?.State == HubConnectionState.Connected)
-                await _hubConnection.InvokeAsync("FilterMessages", Array.Empty<string>());
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            if (_jsModule != null)
-            {
-                await _jsModule.InvokeVoidAsync("removeKpiCardFilter");
-                await _jsModule.DisposeAsync();
-            }
-            _dotNetRef?.Dispose();
-
-            if (_hubConnection != null)
-                await _hubConnection.DisposeAsync();
+            await OnClearFilter.InvokeAsync();
         }
 
         private TypeConfig GetTypeConfig(string type)

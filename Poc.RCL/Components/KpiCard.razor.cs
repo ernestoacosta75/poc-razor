@@ -7,5 +7,10 @@ namespace Poc.RCL.Components
     {
         [Parameter]
         public KpiGroupDto Data { get; set; } = null!;
+
+        [Parameter] public EventCallback<string[]> OnFilter { get; set; }
+
+        private Task FilterAll() =>
+            OnFilter.InvokeAsync(Data.Metrics.SelectMany(m => m.Code).ToArray());
     }
 }
