@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DevExpress.Blazor" Version="25.2.3" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Razor" Version="2.3.0" />
   </ItemGroup>

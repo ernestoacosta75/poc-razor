@@ -10,12 +10,12 @@
 
     @foreach (var kpiGroup in Model.KpiGroups)
     {
-        <kpi-card data="kpiGroup"/>
+        <kpi-card data="kpiGroup" />
     }
 </div>
 
-<component type="typeof(Poc.RCL.Components.MessagesGrid)" 
-           render-mode="Static" 
+<component type="typeof(Poc.RCL.Components.MessagesGrid)"
+           render-mode="Static"
            param-Data="Model.Messages" />
 
 @section Scripts {
@@ -55,7 +55,7 @@
                 document.addEventListener("kpi-card-filter", (e) => {
                     const datiFiltro = e.detail;
                     console.log("Dashboard: Intercettato click sulle KPI", datiFiltro);
-                    
+
                     if (datiFiltro && datiFiltro.types) {
                         this.filterMessages(datiFiltro.types);
                     }
@@ -65,7 +65,7 @@
             // 4. Azione: Invia i filtri al server tramite SignalR
             filterMessages(typesArray) {
                 if (!this.signalrConnection) return;
-                
+
                 // Flattando l'array del attributo Code
                 const flatCodeArray = Array.isArray(typesArray) ? typesArray.flat() : [];
 
@@ -82,7 +82,7 @@
             // 6. UI: Aggiornamento della Griglia DevExtreme e dei contatori
             updateDataGrid(filteredData) {
                 console.log("Dashboard: Aggiornamento griglia con nuovi dati", filteredData);
-                
+
                 const dataGrid = $("#messages-grid").dxDataGrid("instance");
                 if (dataGrid) {
                     dataGrid.option("dataSource", filteredData);

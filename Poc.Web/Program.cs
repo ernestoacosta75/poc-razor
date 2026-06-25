@@ -1,8 +1,7 @@
-using System.Text.Json;
-using DevExtreme.AspNet.Mvc;
 using Poc.Data.Application.Services;
 using Poc.Data.Infrastructure.Services;
 using Poc.Web.Hubs;
+using DevExpress.Blazor;
 
 namespace Poc.Web
 {
@@ -11,6 +10,15 @@ namespace Poc.Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Aggiungi i servizi standard per Razor Pages e Blazor Server (se non ci sono già)
+            builder.Services.AddRazorPages();
+            builder.Services.AddServerSideBlazor(); // <-- Necessario per far girare i componenti Blazor
+
+            // REGISTRA I SERVIZI DEVERPRESS BLAZOR QUI
+            builder.Services.AddDevExpressBlazor(options => {
+                options.BootstrapVersion = BootstrapVersion.v5; // Specifica la tua versione di Bootstrap (v5 o v4)
+            });
 
             builder.Services.AddScoped<IKpiService, KpiService>();
 
