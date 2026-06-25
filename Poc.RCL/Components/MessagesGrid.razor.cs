@@ -1,48 +1,71 @@
 using DevExpress.Blazor;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.JSInterop;
 using Poc.RCL.Models;
 
 namespace Poc.RCL.Components
 {
-    public partial class MessagesGrid
+    public partial class MessagesGrid : IAsyncDisposable
     {
         [Parameter]
         public List<MessageDto>? Data { get; set; }
 
-        // Riferimento all'istanza della Grid Blazor
+        [Inject]
+        private NavigationManager Navigation { get; set; } = default!;
+
+        [Inject]
+        private IJSRuntime JS { get; set; } = default!;
+
         private IGrid? GridInstance { get; set; }
+        private HubConnection? _hubConnection;
+        private IJSObjectReference? _jsModule;
+        private DotNetObjectReference<MessagesGrid>? _dotNetRef;
+        private List<MessageDto> _messages = [];
 
-
-        // Proprietà per tracciare i conteggi in tempo reale
         private int TotalCount => Data?.Count ?? 0;
-        private int VisibleCount => Data?.Count ?? 0;
+        private int VisibleCount => _messages.Count;
 
         protected bool SyncSortAsc { get; set; } = false;
 
-        // Record di supporto per le configurazioni grafiche
         private record TypeConfig(string Color, string Bg, string Icon);
 
         private string _dataScriptId = $"grid-data-{Guid.NewGuid().ToString("N")[..8]}";
 
-        // Metodo pubblico invocabile dagli altri componenti parent (es. le KPI card) senza JS
-        public void KpiFilterGrid(List<string> types)
+        protected override void OnParametersSet()
         {
-            if (GridInstance == null) return;
+            _messages = Data ?? [];
+        }
 
-            if (types == null || !types.Any(t => !string.IsNullOrWhiteSpace(t)))
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (!firstRender) return;
+
+            // Connessione all'hub SignalR per ricevere i dati filtrati
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl(Navigation.ToAbsoluteUri("/hubs/messagegrid"))
+                .Build();
+
+            _hubConnection.On<List<MessageDto>>("ReceiveFilteredMessages", async (filtered) =>
             {
-                GridInstance.ClearFilter();
-                return;
-            }
+                _messages = filtered;
+                await InvokeAsync(StateHasChanged);
+            });
 
-            var filteredTypes = types.Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => t.Trim()).ToList();
+            await _hubConnection.StartAsync();
 
-            // Costruiamo i criteri di filtro nativi (CriteriaOperator equivalente di DevExpress)
-            // Utilizza l'approccio semplificato di DxGrid tramite filtri a colonna o FilterCriteria.
-            // Per comodità implementiamo un filtro basato su stringa OR
-            string filterCriteria = string.Join(" Or ", filteredTypes.Select(t => $"Contains([MessageType], '{t}')"));
+            // Registrazione del listener DOM per l'evento kpi-card-filter
+            _jsModule = await JS.InvokeAsync<IJSObjectReference>(
+                "import", "./_content/Poc.RCL/messagesGrid.js");
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await _jsModule.InvokeVoidAsync("addKpiCardFilter", _dotNetRef);
+        }
 
-            GridInstance.SetFilterCriteria(DevExpress.Data.Filtering.CriteriaOperator.Parse(filterCriteria));
+        [JSInvokable]
+        public async Task OnKpiCardFilter(string[] types)
+        {
+            if (_hubConnection?.State == HubConnectionState.Connected)
+                await _hubConnection.InvokeAsync("FilterMessages", types);
         }
 
         protected void ToggleSyncDateSort()
@@ -51,13 +74,28 @@ namespace Poc.RCL.Components
 
             SyncSortAsc = !SyncSortAsc;
             var order = SyncSortAsc ? GridColumnSortOrder.Ascending : GridColumnSortOrder.Descending;
-
             GridInstance.SortBy("SyncDate", order);
         }
 
-        protected void ClearGridFilter()
+        protected async Task ClearGridFilter()
         {
             GridInstance?.ClearFilter();
+
+            if (_hubConnection?.State == HubConnectionState.Connected)
+                await _hubConnection.InvokeAsync("FilterMessages", Array.Empty<string>());
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_jsModule != null)
+            {
+                await _jsModule.InvokeVoidAsync("removeKpiCardFilter");
+                await _jsModule.DisposeAsync();
+            }
+            _dotNetRef?.Dispose();
+
+            if (_hubConnection != null)
+                await _hubConnection.DisposeAsync();
         }
 
         private TypeConfig GetTypeConfig(string type)

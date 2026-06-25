@@ -42,13 +42,13 @@
         <button class="messages-grid-sort-btn" @onclick="ToggleSyncDateSort">
             <i class="bi bi-filter"></i> Sync Date <span>@(SyncSortAsc ? "↑" : "↓")</span>
         </button>
-        <button class="messages-grid-clear-btn" @onclick="ClearGridFilter" title="Clear filter">
+        <button class="messages-grid-clear-btn" @onclick="async () => await ClearGridFilter()" title="Clear filter">
             <i class="bi bi-x-circle"></i> Clear filter
         </button>
     </div>
 
     <DxGrid @key="@_dataScriptId"
-            Data="@Data"
+            Data="@_messages"
             KeyFieldName="Id"
             Width="100%"
             ShowGroupPanel="false"

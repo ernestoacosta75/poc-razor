@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Web;
 using Poc.Data.Application.Services;
 using Poc.Data.Infrastructure.Services;
 using Poc.Web.Hubs;
@@ -13,7 +14,8 @@ namespace Poc.Web
 
             // Aggiungi i servizi standard per Razor Pages e Blazor Server (se non ci sono già)
             builder.Services.AddRazorPages();
-            builder.Services.AddServerSideBlazor(); // <-- Necessario per far girare i componenti Blazor
+            builder.Services.AddRazorComponents()
+                .AddInteractiveServerComponents();
 
             // REGISTRA I SERVIZI DEVERPRESS BLAZOR QUI
             builder.Services.AddDevExpressBlazor(options => {
@@ -45,9 +47,12 @@ namespace Poc.Web
 
             app.UseRouting();
             app.UseAuthorization();
+            app.UseAntiforgery();
 
             app.MapStaticAssets();
             app.MapRazorPages().WithStaticAssets();
+            app.MapRazorComponents<App>()
+                .AddInteractiveServerRenderMode();
             app.MapHub<GridFilterHub>("/hubs/messagegrid");
 
             app.Run();
