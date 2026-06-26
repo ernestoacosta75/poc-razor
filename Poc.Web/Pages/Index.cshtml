@@ -5,8 +5,13 @@
     ViewData["Title"] = "Home page";
 }
 
-<component type="typeof(Poc.RCL.Components.Dashboard)"
-           render-mode="Server"
-           param-AllMessages="Model.Messages"
-           param-KpiGroups="Model.KpiGroups"
-           param-MessagesTotalDto="Model.MessagesTotalDto" />
+<div class="kpi-dashboard-row">
+    <total-messages-card data="Model.MessagesTotalDto" />
+
+    @foreach (var kpiGroup in Model.KpiGroups)
+    {
+        <kpi-card data="kpiGroup" />
+    }
+</div>
+
+<messages-grid data="Model.Messages" filter-url="/Index?handler=FilteredMessages" />

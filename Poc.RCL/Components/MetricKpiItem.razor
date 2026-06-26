@@ -1,7 +1,12 @@
+@using System.Text.Json
+@{
+    var codesJson = JsonSerializer.Serialize(Item.Code);
+}
+
 <div class="kpi-metric-row"
      style="cursor:pointer;"
-     @onclick="() => OnFilter.InvokeAsync(Item.Code)"
-     @onclick:stopPropagation="true">
+     data-codes='@codesJson'
+     onclick="event.stopPropagation(); document.dispatchEvent(new CustomEvent('messages-grid-filter',{detail:{types:JSON.parse(this.dataset.codes)}}))">
     <i class="@Item.Icon kpi-icon" style="color: @(string.IsNullOrEmpty(IconColor) ? "currentColor" : IconColor) !important;"></i>
     <span class="kpi-value">@Item.Value</span>
     <span class="kpi-label">@Item.Label</span>

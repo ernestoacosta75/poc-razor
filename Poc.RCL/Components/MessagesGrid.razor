@@ -1,185 +1,135 @@
-@using System.Text.Json
 @using Poc.RCL.Models
-@using DevExpress.Blazor
+@using System.Text.Json
+
+@{
+    var _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    var initialDataJson = JsonSerializer.Serialize(Data ?? new List<MessageDto>(), _jsonOptions);
+    var total = Data?.Count ?? 0;
+}
 
 <div class="messages-grid-wrapper" style="border: none; box-shadow: none;">
-    
-@*     <div style="background: #f8fafc; border: 2px dashed #cbd5e1; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
-        <h4 style="color: #0f172a; margin-top: 0;">🛠️ Debug Dati in Ingresso</h4>
-        @if (Data == null)
-        {
-            <p style="color: #ef4444; font-weight: bold;">⚠️ Il parametro 'Data' è NULL!</p>
-        }
-        else if (!Data.Any())
-        {
-            <p style="color: #f59e0b; font-weight: bold;">⚠️ 'Data' è una lista VUOTA (0 elementi).</p>
-        }
-        else
-        {
-            <p style="color: #22c55e; font-weight: bold;">✅ 'Data' contiene @Data.Count() elementi.</p>
-            <p><strong>Primo elemento rilevato:</strong></p>
-            <pre style="background: #1e293b; color: #38bdf8; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 12px;">
-                @{
-                    var primoElemento = Data.FirstOrDefault();
-                    try
-                    {
-                        // Proviamo a serializzarlo per vedere le proprietà a runtime
-                        @JsonSerializer.Serialize(primoElemento, new JsonSerializerOptions { WriteIndented = true })
-                    }
-                    catch (Exception ex)
-                    {
-                        @($"Errore serializzazione: {ex.Message}")
-                    }
-                }
-            </pre>
-        }
-    </div> *@
 
     <div class="messages-grid-toolbar">
         <span class="messages-grid-count">
-            Showing <strong>@VisibleCount</strong> of <strong>@TotalCount</strong> messages
+            Showing <strong id="@(_gridId + "-visible")">@total</strong>
+            of <strong>@total</strong> messages
         </span>
-        <button class="messages-grid-sort-btn" @onclick="ToggleSyncDateSort">
-            <i class="bi bi-filter"></i> Sync Date <span>@(SyncSortAsc ? "↑" : "↓")</span>
+        <button class="messages-grid-sort-btn" onclick="window['MsgGrid_@(_gridId)'].toggleSort()">
+            <i class="bi bi-filter"></i> Sync Date
+            <span id="@(_gridId + "-sort-arrow")">↓</span>
         </button>
-        <button class="messages-grid-clear-btn" @onclick="ClearGridFilter" title="Clear filter">
+        <button class="messages-grid-clear-btn" onclick="window['MsgGrid_@(_gridId)'].clearFilter()" title="Clear filter">
             <i class="bi bi-x-circle"></i> Clear filter
         </button>
     </div>
 
-    <DxGrid @key="@_dataScriptId"
-            Data="@Data"
-            KeyFieldName="Id"
-            Width="100%"
-            ShowGroupPanel="false"
-            ShowSearchBox="false"
-            AllowSelectRowByClick="true"
-            SelectionMode="GridSelectionMode.Multiple"
-            SelectAllCheckboxMode="GridSelectAllCheckboxMode.Page">
+    <div id="@_gridId"></div>
 
-        <Columns>
-            <DxGridSelectionColumn Width="50px" />
-
-            <DxGridDataColumn FieldName="VesselName" Caption="VESSEL" Width="25%">
-                <CellDisplayTemplate>
-                    @{
-                        var d = (MessageDto)context.DataItem;
-                        var vColor = string.IsNullOrEmpty(d.VesselColor) ? "#6b7280" : d.VesselColor;
-                    }
-                    <div style="display:flex; align-items:center; gap:10px; padding:4px 0;">
-                        <div style="width:38px; height:38px; border-radius:8px; background:@vColor; color:#fff; font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                            @d.VesselInitials
-                        </div>
-                        <div>
-                            <div style="font-weight:600; font-size:13px; color:#111827;">@d.VesselName</div>
-                            <div style="font-size:11px; color:#6b7280;">@d.CaptainEmail</div>
-                            <div style="font-size:11px; color:#9ca3af;">@d.Office</div>
-                        </div>
-                    </div>
-                </CellDisplayTemplate>
-            </DxGridDataColumn>
-
-            <DxGridDataColumn FieldName="VoyageCode" Caption="VOYAGE" Width="15%" TextAlignment="GridTextAlignment.Center">
-                <CellDisplayTemplate>
-                    @{
-                        var d = (MessageDto)context.DataItem;
-                    }
-                    <span style="background:#fef9c3; color:#854d0e; border:1px solid #fde047; border-radius:4px; padding:3px 8px; font-size:12px; font-weight:600; display:inline-block;">
-                        @d.VoyageCode
-                    </span>
-                </CellDisplayTemplate>
-            </DxGridDataColumn>
-            
-            <DxGridDataColumn FieldName="MessageTypeDesc" Caption="TYPE" Width="150px" TextAlignment="GridTextAlignment.Center">
-                <CellDisplayTemplate>
-                    @{
-                        var val = context.Value?.ToString() ?? "";
-                        var cfg = GetTypeConfig(val);
-                    }
-                    <span style="background:@cfg.Bg; color:@cfg.Color; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:5px;">
-                        <i class="@cfg.Icon"></i>
-                        @val.ToUpper()
-                    </span>
-                </CellDisplayTemplate>
-            </DxGridDataColumn>
-            <DxGridDataColumn FieldName="MessageDate" Caption="DATE" Width="165px" SortMode="GridColumnSortMode.Value">
-                <CellDisplayTemplate>
-                    @{
-                        var d = (MessageDto)context.DataItem;
-                    }
-                    @if (d.MessageDate != null)
-                    {
-                        <div style="padding:2px 0;">
-                            @* Riga principale: Giorno a sinistra, blocco Mese/Anno/Ora a destra *@
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                @* Numero del giorno *@
-                                <span style="font-size:22px; font-weight:700; color:#f97316; line-height:1;">@d.MessageDate.Day</span>
-
-                                @* Contenitore per Mese, Anno e Ora allineati *@
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    @* Mese e Anno sovrapposti *@
-                                    <div style="font-size:11px; color:#6b7280; line-height:1.2; font-weight:600;">
-                                        @d.MessageDate.ToString("MMM").ToUpper()<br>
-                                        <span style="font-weight:400; color:#9ca3af;">@d.MessageDate.Year</span>
-                                    </div>
-
-                                    @* Badge dell'orario leggermente più in basso e affiancato *@
-                                    <span style="font-size:12px; background:#e5e7eb; color:#374151; border-radius:6px; padding:3px 8px; font-weight:500; display:inline-block;">
-                                        @d.MessageTime
-                                    </span>
-                                </div>
-                            </div>
-
-                            @* Badge fisso azzurro della SyncDate sotto *@
-                            <div style="display:inline-flex; align-items:center; gap:5px; margin-top:6px; padding:3px 10px; background:#e0f2fe; color:#38bdf8; border:1px solid #bae6fd; border-radius:6px; font-size:11px; font-weight:700;">
-                                <i class="bi bi-arrow-repeat" style="font-size:12px; color:#38bdf8;"></i>
-                                <span>@d.SyncDate.ToString("dd/MM HH:mm")</span>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div>-</div>
-                    }
-                </CellDisplayTemplate>
-            </DxGridDataColumn>
-
-            <DxGridDataColumn FieldName="FromPort" Caption="ROUTE" Width="35%">
-                <CellDisplayTemplate>
-                    @{
-                        var d = (MessageDto)context.DataItem;
-                    }
-                    <div style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; padding:4px 0; text-transform:uppercase;">
-                        @if (d.IsTransitRoute)
-                        {
-                            <i class="bi bi-arrow-left-right" style="color:#fbc02d; font-size:13px;"></i>
-                            <span style="color:#60a5fa;">@d.FromPort</span>
-                            <i class="bi bi-arrow-left-right" style="color:#fbc02d; font-size:13px;"></i>
-                        }
-                        else
-                        {
-                            <i class="bi bi-geo-alt-fill" style="color:#fbc02d; font-size:14px;"></i>
-                            <span style="color:#60a5fa;">@d.FromPort</span>
-                            <i class="bi bi-arrow-right" style="color:#fbc02d; font-size:14px; font-weight:bold;"></i>
-                        }
-                        <i class="bi bi-flag-fill" style="color:#fbc02d; font-size:13px;"></i>
-                        <span style="color:#6b7280; font-weight:600;">@d.ToPort</span>
-                    </div>
-                </CellDisplayTemplate>
-            </DxGridDataColumn>
-
-            <DxGridDataColumn FieldName="MessageTypeDesc" Caption="STATUS" Width="15%" TextAlignment="GridTextAlignment.Center">
-                <CellDisplayTemplate>
-                    @{
-                        var d = (MessageDto)context.DataItem;
-                    }
-                    <span style="background:#dcfce7; color:#166534; border-radius:20px; padding:3px 12px; font-size:11px; font-weight:600; display:inline-block;">
-                        @d.MessageTypeDesc
-                    </span>
-                </CellDisplayTemplate>
-            </DxGridDataColumn>
-
-            <DxGridDataColumn FieldName="SyncDate" Visible="false" SortOrder="GridColumnSortOrder.Descending" SortIndex="0" />
-        </Columns>
-    </DxGrid>
 </div>
+
+<script>
+    (function () {
+        const gridId = "@_gridId";
+        const filterUrl = "@FilterUrl";
+        const allMessages = @((MarkupString)initialDataJson);
+        let sortAsc = false;
+
+        function getGrid() {
+            return $("#" + gridId).dxDataGrid("instance");
+        }
+
+        function updateCount(n) {
+            document.getElementById(gridId + "-visible").textContent = n;
+        }
+
+        function initGrid(data) {
+            $("#" + gridId).dxDataGrid({
+                dataSource: data,
+                showBorders: false,
+                showRowLines: true,
+                showColumnLines: false,
+                rowAlternationEnabled: false,
+                headerFilter: { visible: false },
+                filterRow: { visible: false },
+                paging: { enabled: false },
+                scrolling: { mode: "standard" },
+                selection: { mode: "multiple", showCheckBoxesMode: "always" },
+                columns: [
+                    {
+                        dataField: "vesselName", caption: "VESSEL", width: "25%",
+                        cellTemplate: (el, ci) => cellRenderers.vessel(el, ci)
+                    },
+                    {
+                        dataField: "voyageCode", caption: "VOYAGE", width: "15%", alignment: "center",
+                        cellTemplate: (el, ci) => cellRenderers.voyage(el, ci)
+                    },
+                    {
+                        dataField: "messageTypeDesc", caption: "TYPE", width: 160, alignment: "center",
+                        cellTemplate: (el, ci) => cellRenderers.type(el, ci)
+                    },
+                    {
+                        dataField: "messageDate", caption: "DATE", width: 170, dataType: "date",
+                        cellTemplate: (el, ci) => cellRenderers.date(el, ci)
+                    },
+                    {
+                        dataField: "fromPort", caption: "ROUTE", width: "35%",
+                        cellTemplate: (el, ci) => cellRenderers.route(el, ci)
+                    },
+                    {
+                        dataField: "messageTypeDesc", name: "statusColumn", caption: "STATUS", width: "15%", alignment: "center",
+                        cellTemplate: (el, ci) => {
+                            const val = ci.data?.messageTypeDesc || ci.data?.MessageTypeDesc || "";
+                            $(el).html(`<span style="background:#dcfce7;color:#166534;border-radius:20px;
+                                padding:3px 12px;font-size:11px;font-weight:600;">${val}</span>`);
+                        }
+                    },
+                    {
+                        dataField: "syncDate", visible: false,
+                        sortOrder: "desc", sortIndex: 0
+                    }
+                ]
+            });
+            updateCount(data.length);
+        }
+
+        // API pubblica — chiamata da onclick nei KpiCard
+        window["MsgGrid_" + gridId] = {
+            filter: function (types) {
+                if (!filterUrl || !types || types.length === 0) {
+                    this.clearFilter();
+                    return;
+                }
+                const flat = types.flat();
+                const params = new URLSearchParams();
+                flat.forEach(t => params.append("types", t));
+
+                fetch(filterUrl + "&" + params.toString())
+                    .then(r => r.json())
+                    .then(data => {
+                        getGrid().option("dataSource", data);
+                        updateCount(data.length);
+                    })
+                    .catch(err => console.error("Errore filtro:", err));
+            },
+
+            clearFilter: function () {
+                getGrid().option("dataSource", allMessages);
+                updateCount(allMessages.length);
+            },
+
+            toggleSort: function () {
+                sortAsc = !sortAsc;
+                getGrid().columnOption("syncDate", "sortOrder", sortAsc ? "asc" : "desc");
+                document.getElementById(gridId + "-sort-arrow").textContent = sortAsc ? "↑" : "↓";
+            }
+        };
+
+        $(document).ready(function () {
+            initGrid(allMessages);
+
+            document.addEventListener("messages-grid-filter", function (e) {
+                window["MsgGrid_" + gridId].filter(e.detail.types);
+            });
+        });
+    })();
+</script>

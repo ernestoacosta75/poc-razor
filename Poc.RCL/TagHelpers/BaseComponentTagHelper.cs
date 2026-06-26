@@ -8,11 +8,11 @@ namespace Poc.RCL.TagHelpers
 {
     public abstract class BaseComponentTagHelper<TComponent> : TagHelper where TComponent : IComponent
     {
-        private readonly IHtmlHelper _htmlHelper;
+        protected readonly IHtmlHelper HtmlHelper;
 
         protected BaseComponentTagHelper(IHtmlHelper htmlHelper)
         {
-            _htmlHelper = htmlHelper;
+            HtmlHelper = htmlHelper;
         }
 
         [HtmlAttributeName("data")]
@@ -27,11 +27,10 @@ namespace Poc.RCL.TagHelpers
         {
             if (ViewContext is not null)
             {
-                (_htmlHelper as IViewContextAware)?.Contextualize(ViewContext);
+                (HtmlHelper as IViewContextAware)?.Contextualize(ViewContext);
             }
 
-            // Eseguendo il rendereing del componente
-            var content = await _htmlHelper.RenderComponentAsync<TComponent>(RenderMode.Static, new { Data });
+            var content = await HtmlHelper.RenderComponentAsync<TComponent>(RenderMode.Static, new { Data });
 
             output.TagName = null;
             output.Content.SetHtmlContent(content);

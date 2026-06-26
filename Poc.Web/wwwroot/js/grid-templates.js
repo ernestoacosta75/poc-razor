@@ -1,12 +1,13 @@
 const typeConfig = {
-    "EOSP": { color: "#0891b2", bg: "#e0f2fe", icon: "bi bi-stop-circle-fill" },
-    "COSP": { color: "#0ea5e9", bg: "#dbeafe", icon: "bi bi-play-circle-fill" },
-    "Sailing": { color: "#3b82f6", bg: "#eff6ff", icon: "bi bi-moisture" },
-    "Berthing": { color: "#10b981", bg: "#ecfdf5", icon: "bi bi-anchor" },
-    "Transit": { color: "#8b5cf6", bg: "#f5f3ff", icon: "bi bi-arrow-left-right" },
-    "Refueling": { color: "#f59e0b", bg: "#fffbeb", icon: "bi bi-droplet-fill" },
-    "Sludge": { color: "#78716c", bg: "#f5f5f4", icon: "bi bi-trash" },
-    "EGCS": { color: "#06b6d4", bg: "#ecfeff", icon: "bi bi-wind" }
+    "EOSP":          { color: "#0891b2", bg: "#e0f2fe", icon: "bi bi-stop-circle-fill" },
+    "COSP":          { color: "#0ea5e9", bg: "#dbeafe", icon: "bi bi-play-circle-fill" },
+    "EOSP Transit":  { color: "#6366f1", bg: "#eef2ff", icon: "bi bi-stop-circle" },
+    "COSP Transit":  { color: "#8b5cf6", bg: "#f5f3ff", icon: "bi bi-play-circle" },
+    "Sailing":       { color: "#3b82f6", bg: "#eff6ff", icon: "bi bi-moisture" },
+    "Berthing":      { color: "#10b981", bg: "#ecfdf5", icon: "bi bi-anchor" },
+    "Refueling":     { color: "#f59e0b", bg: "#fffbeb", icon: "bi bi-droplet-fill" },
+    "Sludge":        { color: "#78716c", bg: "#f5f5f4", icon: "bi bi-trash" },
+    "EGCS":          { color: "#06b6d4", bg: "#ecfeff", icon: "bi bi-wind" }
 };
 
 const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -44,7 +45,7 @@ const cellRenderers = {
 
     voyage(el, { value, data: d }) {
         // Se value è vuoto, prova a rimediare estraendolo dall'oggetto riga
-        const rawValue = value || (d ? (d.voyage || d.Voyage) : "") || "-";
+        const rawValue = value || (d ? (d.voyageCode || d.VoyageCode) : "") || "-";
         $(el).html(`
             <span style="background:#fef9c3;color:#854d0e;border:1px solid #fde047;
                          border-radius:4px;padding:3px 8px;font-size:12px;font-weight:600;">${rawValue}</span>`);
@@ -53,7 +54,7 @@ const cellRenderers = {
     type(el, cellInfo) {
         // PREVENZIONE CRASH: Cerca il valore in 'value' o in qualunque variante dell'oggetto riga
         const d = cellInfo.data;
-        const rawValue = cellInfo.value || (d ? (d.type || d.Type || d.messageType || d.MessageType) : "") || "";
+        const rawValue = cellInfo.value || (d ? (d.messageTypeDesc || d.MessageTypeDesc) : "") || "";
 
         // Cerca la configurazione o assegna un fallback di default
         const cfg = typeConfig[rawValue] ?? { color: "#6b7280", bg: "#f3f4f6", icon: "bi bi-circle" };

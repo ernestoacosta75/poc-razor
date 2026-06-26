@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Poc.Data.Application.Services;
 using Poc.RCL.Models;
@@ -27,6 +28,15 @@ namespace Poc.Web.Pages
             KpiGroups        = kpiTask.Result;
             MessagesTotalDto = totalTask.Result;
             Messages         = messagesTask.Result;
+        }
+
+        public async Task<JsonResult> OnGetFilteredMessagesAsync([FromQuery] string[]? types)
+        {
+            var all = await _kpiService.GetMessagesAsync();
+            var filtered = types?.Length > 0
+                ? all.Where(m => types.Contains(m.MessageTypeCode)).ToList()
+                : all;
+            return new JsonResult(filtered);
         }
     }
 }

@@ -10,7 +10,5 @@ namespace Poc.RCL.Components
         [Parameter]
         [EditorRequired]
         public MetricKpiDto Item { get; set; } = null!;
-
-        [Parameter] public EventCallback<string[]> OnFilter { get; set; }
     }
 }
