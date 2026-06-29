@@ -13,10 +13,6 @@ namespace Poc.Web.Pages
         public List<GridColumnDto> GridColumns { get; private set; } = new();
         public List<MessageDto> Messages { get; private set; } = new();
 
-        // This property gets the filters from the URL
-        [BindProperty(SupportsGet = true)]
-        public string[]? Types { get; set; }
-
         public IndexModel(IKpiService kpiService)
         {
             _kpiService = kpiService;
@@ -28,32 +24,21 @@ namespace Poc.Web.Pages
 
             var kpiTask      = _kpiService.GetDashboardGroupsAsync();
             var totalTask    = _kpiService.GetMessagesTotalAsync();
-            var messagesTask = _kpiService.GetMessagesAsync(Types);
+            var messagesTask = _kpiService.GetMessagesAsync();
 
             await Task.WhenAll(kpiTask, totalTask, messagesTask);
 
             KpiGroups        = kpiTask.Result;
             MessagesTotalDto = totalTask.Result;
-
-            var allMessages = messagesTask.Result;
-            Messages = messagesTask.Result;
+            Messages         = messagesTask.Result;
         }
 
         public async Task<IActionResult> OnGetFilteredMessagesAsync(string[] types)
         {
-            // Recupera solo la lista filtrata dei messaggi dal service
+            // Recupera della lista filtrata dei messaggi
             var filteredMessages = await _kpiService.GetMessagesAsync(types);
 
-            // Ritorna unicamente l'array JSON (niente HTML pesante rielaborato)
             return new JsonResult(filteredMessages);
-        }
-
-        public async Task<IActionResult> OnGetGridDataAsync(string[] types)
-        {
-            var messages = await _kpiService.GetMessagesAsync(types);
-
-            // Restituisce solo il JSON dei messaggi, senza ricaricare la pagina HTML
-            return new JsonResult(messages);
         }
     }
 }

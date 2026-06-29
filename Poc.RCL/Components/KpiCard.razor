@@ -2,7 +2,6 @@
 @using System.Text.Json
 @{
     var allCodes = Data.Metrics.SelectMany(m => m.Code).ToArray();
-    var queryString = string.Join("&", allCodes.Select(_ => $"types={_}"));
     var codesJson = JsonSerializer.Serialize(allCodes);
 }
 
