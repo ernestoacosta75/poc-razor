@@ -33,27 +33,40 @@
 
 <script>
     (function () {
+        // Tiene traccia del filtro attivo (array di codici, o null se nessun filtro applicato)
+        window.activeFilterCodes = null;
+
         window.FilterMessagesGrid = function (element) {
-            // Questo cercherà l'elemento con quell'id nel DOM e lo "avvolge"
-            // in un oggetto jQuery con dei metodi aggiuntivi
             const gridElement = $("#@_gridId");
             if (!gridElement.length) return;
 
-            // Restituisce l'istanza JavaScript della griglia già inizializzata
             const gridInstance = gridElement.dxDataGrid("instance");
 
-            // Converte l'elemento cliccato in un oggetto jQuery.
-            // .data("codes") legge l'attributo data-codes dall'html e lo converte 
-            // da string JSON ad array.
+            // Legge i codici dell'elemento cliccato dall'attributo data-codes
             const targetTypes = $(element).data("codes") || [];
 
-            // Questo riga permette eseguire lo spinner nativo dispatchEvent DevExtreme
+            // Toggle: confronta i codici cliccati con il filtro attivo corrente.
+            // Se coincidono, il secondo click rimuove il filtro (deactivation).
+            const isAlreadyActive =
+                window.activeFilterCodes !== null &&
+                JSON.stringify(targetTypes.slice().sort()) === JSON.stringify(window.activeFilterCodes.slice().sort());
+
+            const typesToApply = isAlreadyActive ? [] : targetTypes;
+
+            // Rimuove filter-active da tutti gli elementi KPI, poi la aggiunge
+            // solo all'elemento cliccato (se stiamo attivando, non resettando).
+            $(".kpi-metric-row, .kpi-card-header-clickable").removeClass("filter-active");
+            if (!isAlreadyActive && typesToApply.length > 0) {
+                $(element).addClass("filter-active");
+            }
+
+            window.activeFilterCodes = (isAlreadyActive || typesToApply.length === 0) ? null : targetTypes;
+
             if (gridInstance) gridInstance.beginCustomLoading("Filtering...");
 
-            // Costruendo la url della richiesta AJAX, aggiungendo i parametri "types" per ogni tipo selezionato.
             let url = "/Index?handler=FilteredMessages";
-            if (targetTypes.length > 0) {
-                url += "&" + targetTypes.map(t => `types=${encodeURIComponent(t)}`).join("&");
+            if (typesToApply.length > 0) {
+                url += "&" + typesToApply.map(t => `types=${encodeURIComponent(t)}`).join("&");
             }
 
             $.ajax({
@@ -61,14 +74,10 @@
                 type: "GET",
                 dataType: "json",
                 success: function (newMessages) {
-                    // Aggiornamento righe della griglia con i nuovi dati filtrati
                     if (gridInstance) gridInstance.option("dataSource", newMessages);
-                    
-                    // Selettore jQuery per attributo id, per aggiornare il contatore dei messaggi visibili
                     $("[id='@(_gridId)-visible']").text(newMessages.length);
                 },
                 error: function (xhr, status, error) { console.error("Errore AJAX:", error); },
-                // Stop esecuzione dello spinner nativo DevExtreme dopo il completamento della richiesta
                 complete: function () { if (gridInstance) gridInstance.endCustomLoading(); }
             });
         };

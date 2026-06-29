@@ -320,6 +320,15 @@
     background-color: #e9eaec;
 }
 
+/* Active filter highlight: applied when a KPI card header or sub-row is the active filter */
+.kpi-metric-row.filter-active,
+.kpi-card-header-clickable.filter-active {
+    background-color: #dbeafe;
+    border-radius: 8px;
+    outline: 2px solid #3b82f6;
+    outline-offset: -2px;
+}
+
 /* ═══════════════════════════════════════════════
    QuickGrid — messages-quickgrid
    ═══════════════════════════════════════════════ */
