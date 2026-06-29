@@ -18,6 +18,9 @@ namespace Poc.RCL.TagHelpers
         [HtmlAttributeName("data")]
         public object? Data { get; set; }
 
+        [HtmlAttributeName("columns")]
+        public object? Columns { get; set; }
+
         // Il decorator [ViewContext] dice esplicitamente a Razor di auto-popolare questa property.
         [HtmlAttributeNotBound]
         [ViewContext]
@@ -30,7 +33,24 @@ namespace Poc.RCL.TagHelpers
                 (HtmlHelper as IViewContextAware)?.Contextualize(ViewContext);
             }
 
-            var content = await HtmlHelper.RenderComponentAsync<TComponent>(RenderMode.Static, new { Data });
+            var dictionaryParameters = new Dictionary<string, object?>();
+
+            if (Data != null)
+            {
+                dictionaryParameters.Add("Data", Data);
+            }
+
+            if (Columns != null)
+            {
+                dictionaryParameters.Add("Columns", Columns);
+            }
+
+            if (this is MessagesGridTagHelper gridGridTagHelper && !string.IsNullOrEmpty(gridGridTagHelper.FilterUrl))
+            {
+                dictionaryParameters.Add("FilterUrl", gridGridTagHelper.FilterUrl);
+            }
+
+            var content = await HtmlHelper.RenderComponentAsync<TComponent>(RenderMode.Static, dictionaryParameters);
 
             output.TagName = null;
             output.Content.SetHtmlContent(content);

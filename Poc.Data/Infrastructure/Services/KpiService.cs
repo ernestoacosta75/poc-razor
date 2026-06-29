@@ -117,9 +117,88 @@ namespace Poc.Data.Infrastructure.Services
             };
         }
 
-        public Task<List<MessageDto>> GetMessagesAsync()
+        public Task<List<MessageDto>> GetMessagesAsync(string[]? types = null)
         {
-            return Task.FromResult(_mockMessages);
+            if (types == null || types.Length == 0)
+            {
+                return Task.FromResult(_mockMessages);
+            }
+
+            var filteredMessages = _mockMessages
+                .Where(m => types.Contains(m.MessageTypeCode))
+                .ToList();
+
+            return Task.FromResult(filteredMessages);
+        }
+
+        public async Task<List<GridColumnDto>> GetGridConfigurationAsync()
+        {
+            var columnsConfig = new List<GridColumnDto>  
+            {
+                // Template composto da: Avatar + Titolo + Sotto-titolo
+                new()
+                {
+                    DataField = "vesselName", 
+                    Caption = "VESSEL", 
+                    Width = "25%", 
+                    TemplateType = "AvatarWithText",
+                    AvatarColorField = "vesselColor",
+                    AvatarTextField = "vesselInitials",
+                    SubTitleField = "captainEmail"
+                },
+                // Template a Badge, composto da: Teso in un rettangolo
+                new()
+                {
+                    DataField = "voyageCode", 
+                    Caption = "VOYAGE", 
+                    Width = "15%", 
+                    Alignment = "center", 
+                    TemplateType = "Badge",
+                    BadgeBackgroundColor = "#fef9c3",
+                    BadgeTextColor = "#854d0e"
+                },
+                // Testo semplice (nessun template)
+                new()
+                {
+                    DataField = "messageTypeDesc", 
+                    Caption = "TYPE", 
+                    Width = "160", 
+                    Alignment = "center",
+                    TemplateType = "TypePill",
+                    IconField = "messageIcon",
+                    BadgeBackgroundColor = "messageBgColor", 
+                    BadgeTextColor = "messageTextColor"
+                },
+                new()
+                {
+                    DataField = "messageDate", 
+                    Caption = "DATE", 
+                    Width = "170",
+                    TemplateType = "ComplexDate", 
+                    TimeField = "messageTime", 
+                    SyncDateField = "syncDateFormatted"
+                },
+                new()
+                {
+                    DataField = "fromPort", 
+                    Caption = "ROUTE", 
+                    Width = "35%",
+                    TemplateType = "RouteFlow", ToPortField = "toPort", RouteTypeField = "routeType"
+                },
+                // Template a Badge
+                new()
+                {
+                    DataField = "messageTypeDesc", 
+                    Caption = "STATUS", 
+                    Width = "15%", 
+                    Alignment = "center", 
+                    TemplateType = "Badge",
+                    BadgeBackgroundColor = "#dcfce7",
+                    BadgeTextColor = "#166534"
+                },
+            };
+
+            return columnsConfig;
         }
     }
 }

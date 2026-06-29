@@ -3,11 +3,13 @@
     var codesJson = JsonSerializer.Serialize(Item.Code);
 }
 
-<div class="kpi-metric-row"
-     style="cursor:pointer;"
-     data-codes='@codesJson'
-     onclick="event.stopPropagation(); document.dispatchEvent(new CustomEvent('messages-grid-filter',{detail:{types:JSON.parse(this.dataset.codes)}}))">
+<a href="javascript:void(0);"
+   data-codes='@codesJson'
+   onclick="window.FilterMessagesGrid(this);"
+     class="kpi-metric-row"
+     style="text-decoration: none; color: inherit; display: flex; cursor: pointer;">
+
     <i class="@Item.Icon kpi-icon" style="color: @(string.IsNullOrEmpty(IconColor) ? "currentColor" : IconColor) !important;"></i>
     <span class="kpi-value">@Item.Value</span>
     <span class="kpi-label">@Item.Label</span>
-</div>
+</a>

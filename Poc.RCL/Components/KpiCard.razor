@@ -1,20 +1,23 @@
 @using Poc.RCL.Models
 @using System.Text.Json
 @{
-    var allCodesJson = JsonSerializer.Serialize(Data.Metrics.SelectMany(m => m.Code).ToArray());
+    var allCodes = Data.Metrics.SelectMany(m => m.Code).ToArray();
+    var queryString = string.Join("&", allCodes.Select(_ => $"types={_}"));
+    var codesJson = JsonSerializer.Serialize(allCodes);
 }
 
 <div class="kpi-card" style="border-left: 5px solid @Data.AccentColor">
 
-    <div class="kpi-card-header"
-         style="cursor:pointer;"
-         data-codes='@allCodesJson'
-         onclick="document.dispatchEvent(new CustomEvent('messages-grid-filter',{detail:{types:JSON.parse(this.dataset.codes)}}))">
+    <a href="javascript:void(0);"
+       data-codes='@codesJson'
+       onclick="window.FilterMessagesGrid(this);"
+       class="kpi-card-header"
+       style="cursor:pointer; text-decoration: none; color: inherit; display: flex; align-items: center;">
         <div class="kpi-header-icon" style="background-color: @(Data.AccentColor)1A; color: @Data.AccentColor;">
             <i class="@Data.HeaderIcon"></i>
         </div>
         <span class="kpi-card-title">@Data.Title.ToUpper()</span>
-    </div>
+    </a>
 
     @if (Data.IsGrid)
     {

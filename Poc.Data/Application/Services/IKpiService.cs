@@ -6,6 +6,7 @@ namespace Poc.Data.Application.Services
     {
         Task<MessagesTotalDto> GetMessagesTotalAsync();
         Task<List<KpiGroupDto>> GetDashboardGroupsAsync();
-        Task<List<MessageDto>> GetMessagesAsync();
+        Task<List<MessageDto>> GetMessagesAsync(string[]? types);
+        Task<List<GridColumnDto>> GetGridConfigurationAsync();
     }
 }

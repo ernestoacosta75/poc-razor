@@ -2,12 +2,14 @@
 @using System.Text.Json
 
 @{
+    string _gridId = "messagesDevExtremeGrid";
     var _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     var initialDataJson = JsonSerializer.Serialize(Data ?? new List<MessageDto>(), _jsonOptions);
+    var columnsJson = JsonSerializer.Serialize(Columns ?? new List<GridColumnDto>(), _jsonOptions);
     var total = Data?.Count ?? 0;
 }
 
-<div class="messages-grid-wrapper" style="border: none; box-shadow: none;">
+<div class="messages-grid-wrapper" style="border: none; box-shadow: none; position: relative; min-height: 200px;">
 
     <div class="messages-grid-toolbar">
         <span class="messages-grid-count">
@@ -18,118 +20,234 @@
             <i class="bi bi-filter"></i> Sync Date
             <span id="@(_gridId + "-sort-arrow")">↓</span>
         </button>
-        <button class="messages-grid-clear-btn" onclick="window['MsgGrid_@(_gridId)'].clearFilter()" title="Clear filter">
+        <a href="javascript:void(0);"
+           data-codes='[]'
+           onclick="window.FilterMessagesGrid(this);"
+           class="messages-grid-clear-btn" style="text-decoration: none; cursor: pointer;" title="Clear filter">
             <i class="bi bi-x-circle"></i> Clear filter
-        </button>
+        </a>
     </div>
+
+    <div id="grid-loadpanel"></div>
 
     <div id="@_gridId"></div>
 
 </div>
 
 <script>
+    // Usiamo una closure per evitare che le variabili sporchino lo scope globale
     (function () {
-        const gridId = "@_gridId";
-        const filterUrl = "@FilterUrl";
-        const allMessages = @((MarkupString)initialDataJson);
-        let sortAsc = false;
+        // Registriamo la funzione direttamente sull'oggetto globale 'window'
+        window.FilterMessagesGrid = function (element) {
+            const gridElement = $("#@_gridId");
+            if (!gridElement.length) return;
 
-        function getGrid() {
-            return $("#" + gridId).dxDataGrid("instance");
-        }
+            const gridInstance = gridElement.dxDataGrid("instance");
 
-        function updateCount(n) {
-            document.getElementById(gridId + "-visible").textContent = n;
-        }
+            // Recupera in modo sicuro l'array convertendolo automaticamente
+            const targetTypes = $(element).data("codes") || [];
 
-        function initGrid(data) {
-            $("#" + gridId).dxDataGrid({
-                dataSource: data,
-                showBorders: false,
-                showRowLines: true,
-                showColumnLines: false,
-                rowAlternationEnabled: false,
-                headerFilter: { visible: false },
-                filterRow: { visible: false },
-                paging: { enabled: false },
-                scrolling: { mode: "standard" },
-                selection: { mode: "multiple", showCheckBoxesMode: "always" },
-                columns: [
-                    {
-                        dataField: "vesselName", caption: "VESSEL", width: "25%",
-                        cellTemplate: (el, ci) => cellRenderers.vessel(el, ci)
-                    },
-                    {
-                        dataField: "voyageCode", caption: "VOYAGE", width: "15%", alignment: "center",
-                        cellTemplate: (el, ci) => cellRenderers.voyage(el, ci)
-                    },
-                    {
-                        dataField: "messageTypeDesc", caption: "TYPE", width: 160, alignment: "center",
-                        cellTemplate: (el, ci) => cellRenderers.type(el, ci)
-                    },
-                    {
-                        dataField: "messageDate", caption: "DATE", width: 170, dataType: "date",
-                        cellTemplate: (el, ci) => cellRenderers.date(el, ci)
-                    },
-                    {
-                        dataField: "fromPort", caption: "ROUTE", width: "35%",
-                        cellTemplate: (el, ci) => cellRenderers.route(el, ci)
-                    },
-                    {
-                        dataField: "messageTypeDesc", name: "statusColumn", caption: "STATUS", width: "15%", alignment: "center",
-                        cellTemplate: (el, ci) => {
-                            const val = ci.data?.messageTypeDesc || ci.data?.MessageTypeDesc || "";
-                            $(el).html(`<span style="background:#dcfce7;color:#166534;border-radius:20px;
-                                padding:3px 12px;font-size:11px;font-weight:600;">${val}</span>`);
-                        }
-                    },
-                    {
-                        dataField: "syncDate", visible: false,
-                        sortOrder: "desc", sortIndex: 0
-                    }
-                ]
-            });
-            updateCount(data.length);
-        }
-
-        // API pubblica — chiamata da onclick nei KpiCard
-        window["MsgGrid_" + gridId] = {
-            filter: function (types) {
-                if (!filterUrl || !types || types.length === 0) {
-                    this.clearFilter();
-                    return;
-                }
-                const flat = types.flat();
-                const params = new URLSearchParams();
-                flat.forEach(t => params.append("types", t));
-
-                fetch(filterUrl + "&" + params.toString())
-                    .then(r => r.json())
-                    .then(data => {
-                        getGrid().option("dataSource", data);
-                        updateCount(data.length);
-                    })
-                    .catch(err => console.error("Errore filtro:", err));
-            },
-
-            clearFilter: function () {
-                getGrid().option("dataSource", allMessages);
-                updateCount(allMessages.length);
-            },
-
-            toggleSort: function () {
-                sortAsc = !sortAsc;
-                getGrid().columnOption("syncDate", "sortOrder", sortAsc ? "asc" : "desc");
-                document.getElementById(gridId + "-sort-arrow").textContent = sortAsc ? "↑" : "↓";
+            // Mostra lo spinner immediatamente se esiste l'istanza globale
+            if (typeof msgGridLoadPanel !== 'undefined' && msgGridLoadPanel) {
+                msgGridLoadPanel.show();
             }
-        };
 
-        $(document).ready(function () {
-            initGrid(allMessages);
+            let url = "/Index?handler=FilteredMessages";
+            if (targetTypes && targetTypes.length > 0) {
+                const params = targetTypes.map(t => `types=${encodeURIComponent(t)}`).join("&");
+                url += "&" + params;
+            }
 
-            document.addEventListener("messages-grid-filter", function (e) {
-                window["MsgGrid_" + gridId].filter(e.detail.types);
+            $.ajax({
+                url: url,
+                type: "GET",
+                dataType: "json",
+                success: function (newMessages) {
+                    if (gridInstance) {
+                        gridInstance.option("dataSource", newMessages);
+                    }
+                    $("[id='@(_gridId)-visible']").text(newMessages.length);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Errore AJAX durante il filtraggio:", error);
+                },
+                complete: function () {
+                    if (typeof msgGridLoadPanel !== 'undefined' && msgGridLoadPanel) {
+                        msgGridLoadPanel.hide();
+                    }
+                }
             });
-        });
+        };
     })();
+
+    // Manteniamo il document.ready separato per l'inizializzazione della griglia
+    $(document).ready(function () {
+        const dataFromServer = @((MarkupString)initialDataJson);
+        const columnsFromServer = @((MarkupString)columnsJson);
+
+        const processedColumns = columnsFromServer.map(col => {
+            col.name = col.caption;
+
+            if (!col.templateType) return col;
+
+            const currentConfig = {
+                type: col.templateType,
+                colorFld: col.avatarColorField,
+                textFld: col.avatarTextField,
+                subFld: col.subTitleField,
+                bg: col.badgeBackgroundColor,
+                txt: col.badgeTextColor,
+                iconFld: col.iconField,
+                toPortFld: col.toPortField,
+                routeTypeFld: col.routeTypeField,
+                timeFld: col.timeField,
+                syncFld: col.syncDateField
+            };
+
+            col.cellTemplate = function(container, cellInfo) {
+                const data = cellInfo.data;
+                if (!data) return;
+
+                const val = cellInfo.value || "";
+
+                if (currentConfig.type === "AvatarWithText") {
+                    const color = data[currentConfig.colorFld] || "#6b7280";
+                    const initials = data[currentConfig.textFld] || "";
+                    const subText = data[currentConfig.subFld] || "";
+                    $(container).html(`
+                        <div style="display:flex; align-items:center; gap:10px; padding:4px 0;">
+                            <div style="width:38px; height:38px; border-radius:8px; background:${color}; color:#fff; font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">${initials}</div>
+                            <div>
+                                <div style="font-weight:600; font-size:13px; color:#111827;">${val}</div>
+                                <div style="font-size:11px; color:#6b7280;">${subText}</div>
+                            </div>
+                        </div>
+                    `);
+                }
+                else if (currentConfig.type === "Badge") {
+                    $(container).html(`
+                        <span style="background:${currentConfig.bg}; color:${currentConfig.txt}; border-radius:4px; padding:3px 8px; font-size:11px; font-weight:600; display:inline-block;">
+                            ${val}
+                        </span>
+                    `);
+                }
+                else if (currentConfig.type === "TypePill") {
+                    const typeVal = val.trim().toUpperCase();
+                    let configStyle = { bg: "#e5e7eb", text: "#1f2937", icon: "bi-chat-left-text" };
+
+                    if (typeVal === "SAILING") { configStyle = { bg: "#e0f2fe", text: "#0284c7", icon: "bi-water" }; }
+                    else if (typeVal === "BERTHING") { configStyle = { bg: "#eff6ff", text: "#1e40af", icon: "bi-geo-alt" }; }
+                    else if (typeVal === "AT SEA") { configStyle = { bg: "#f3e8ff", text: "#6b21a8", icon: "bi-waves" }; }
+                    else if (typeVal === "AT PORT") { configStyle = { bg: "#f3e8ff", text: "#6b21a8", icon: "bi-building" }; }
+                    else if (typeVal === "COSP") { configStyle = { bg: "#06b6d41A", text: "#00838f", icon: "bi-play-circle-fill" }; }
+                    else if (typeVal === "EOSP") { configStyle = { bg: "#e0f7fa", text: "#00838f", icon: "bi-record-circle-fill" }; }
+                    else if (typeVal.includes("TRANSIT")) { configStyle = { bg: "#e8eaf6", text: "#283593", icon: "bi-arrow-left-right" }; }
+                    else if (typeVal.includes("REFUELING")) { configStyle = { bg: "#fff3e0", text: "#ef6c00", icon: "bi-fuel-pump-fill" }; }
+                    else if (typeVal.includes("BUNKER")) { configStyle = { bg: "#fff3e0", text: "#ef6c00", icon: "bi-plus-square" }; }
+                    else if (typeVal.includes("DELAY")) { configStyle = { bg: "#e8f5e9", text: "#2e7d32", icon: "bi-hourglass-split" }; }
+                    else if (typeVal.includes("EGCS")) { configStyle = { bg: "#e8f5e9", text: "#2e7d32", icon: "bi-wind" }; }
+                    else if (typeVal.includes("SLUDGE") || typeVal.includes("DISCHARGED")) { configStyle = { bg: "#f5f5f5", text: "#424242", icon: "bi-trash" }; }
+                    else if (typeVal.includes("SURVEY")) { configStyle = { bg: "#e8f5e9", text: "#2e7d32", icon: "bi-clipboard-check" }; }
+
+                    $(container).html(`
+                        <span style="background:${configStyle.bg}; color:${configStyle.text}; border-radius:20px; padding:4px 14px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:6px; font-family: sans-serif; letter-spacing: 0.3px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                            <i class="bi ${configStyle.icon}" style="font-size:12px; display: flex; align-items: center;"></i>
+                            <span>${val.toUpperCase()}</span>
+                        </span>
+                    `);
+                }
+                else if (currentConfig.type === "ComplexDate") {
+                    const dateObj = new Date(val);
+                    const day = !isNaN(dateObj) ? String(dateObj.getDate()).padStart(2, '0') : "20";
+                    const month = !isNaN(dateObj) ? dateObj.toLocaleString('en-US', { month: 'short' }).toUpperCase() : "MAR";
+                    const year = !isNaN(dateObj) ? dateObj.getFullYear() : "2026";
+                    const time = data[currentConfig.timeFld] || "10:30";
+                    const syncDate = data[currentConfig.syncFld] || "20/03 12:15";
+
+                    $(container).html(`
+                        <div style="display:flex; flex-direction:column; gap:5px; padding:2px 0; font-family: sans-serif;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:26px; font-weight:700; color:#d9a420; line-height:1; letter-spacing:-0.5px;">${day}</span>
+                                <div style="display:flex; flex-direction:column; line-height:1.1; justify-content:center;">
+                                    <span style="font-size:12px; font-weight:700; color:#4a4a4a; letter-spacing:0.5px;">${month}</span>
+                                    <span style="font-size:11px; font-weight:500; color:#9b9b9b;">${year}</span>
+                                </div>
+                                <span style="font-size:12px; font-weight:500; color:#595959; background:#e6e6e6; padding:3px 8px; border-radius:6px; margin-left:2px; font-variant-numeric: tabular-nums;">${time}</span>
+                            </div>
+                            <div style="display:flex; margin-top:2px;">
+                                <span style="background:#eaf7ff; color:#32b2f0; border:1px solid #cceeff; border-radius:6px; padding:2px 6px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:5px;">
+                                    <i class="bi bi-arrow-repeat" style="font-size:12px; font-weight:bold;"></i> ${syncDate}
+                                </span>
+                            </div>
+                        </div>
+                    `);
+                }
+                else if (currentConfig.type === "RouteFlow") {
+                    const destination = data[currentConfig.toPortFld] || "N/A";
+                    const isLandType = data[currentConfig.routeTypeFld] === "land";
+                    const isTransit = val.toUpperCase().includes("CANAL") || (data.messageTypeDesc && data.messageTypeDesc.toUpperCase().includes("TRANSIT"));
+
+                    const sourceIcon = isTransit
+                        ? `<i class="bi bi-arrow-left-right" style="color:#f2b413; font-size:13px; display:inline-block; font-weight:bold;"></i>`
+                        : `<i class="bi bi-geo-alt-fill" style="color:#f0b822; font-size:14px;"></i>`;
+
+                    const sourceTextColor = isTransit ? "#6366f1" : "#3b82f6";
+                    const targetIcon = isLandType ? `<i class="bi bi-triangle-fill" style="color:#f59e0b; font-size:9px;"></i>` : `<i class="bi bi-flag-fill" style="color:#eab308; font-size:13px;"></i>`;
+
+                    $(container).html(`
+                        <div style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; font-family: sans-serif; padding:6px 0;">
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                ${sourceIcon}
+                                <span style="color:${sourceTextColor}; letter-spacing:0.3px;">${val.toUpperCase()}</span>
+                            </div>
+                            <i class="bi bi-arrow-right" style="color:#f2b413; font-size:14px; font-weight:bold;"></i>
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                ${targetIcon}
+                                <span style="color:#7f7f7f; letter-spacing:0.3px;">${destination.toUpperCase()}</span>
+                            </div>
+                        </div>
+                    `);
+                }
+            };
+
+            delete col.templateType;
+            return col;
+        });
+
+        // Inizializziamo lo spinner associandolo alla finestra in modo sicuro
+        window.msgGridLoadPanel = $("#grid-loadpanel").dxLoadPanel({
+            shading: true,
+            shadingColor: "rgba(255, 255, 255, 0.7)",
+            position: {
+                my: "center",
+                at: "center",
+                of: ".messages-grid-wrapper"
+            },
+            visible: false,
+            showIndicator: true,
+            showPanel: true,
+            text: "Loading messages...",
+            container: ".messages-grid-wrapper",
+            zIndex: 99999
+        }).dxLoadPanel("instance");
+
+        $("#@_gridId").dxDataGrid({
+            dataSource: dataFromServer,
+            columns: processedColumns,
+            showBorders: false,
+            showRowLines: true,
+            headerFilter: { visible: false },
+            filterRow: { visible: false },
+            paging: { pageSize: 10 },
+            pager: {
+                visible: true,
+                allowedPageSizes: [10, 20, 50, 100],
+                showPageSizeSelector: true,
+                showInfo: true,
+                showNavigationButtons: true
+            },
+            scrolling: { mode: "standard" },
+            selection: { mode: "multiple", showCheckBoxesMode: "always" }
+        });
+    });
 </script>
