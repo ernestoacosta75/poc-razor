@@ -132,7 +132,6 @@
                             const data = cellInfo.data;
                             if (!data) return;
 
-                            // Fallback: prova 'voyage', poi 'voyageCode', poi 'voyageNo'
                             const val = cellInfo.value || data.voyageCode || data.voyageNo || "";
                             if (!val) return;
 
@@ -150,7 +149,6 @@
                             const data = cellInfo.data;
                             if (!data) return;
 
-                            // Fallback: prova 'type', poi 'messageTypeDesc', poi 'typeDesc'
                             const val = cellInfo.value || data.messageTypeDesc || data.typeDesc || "";
                             if (!val) return;
 
@@ -201,8 +199,6 @@
                     {
                         dataField: "fromPort",
                         caption: "ROUTE",
-                        // FORZATURA LARGHEZZA: impostiamo una larghezza minima e ideale
-                        // in modo che DevExtreme allarghi la colonna e non tagli il testo
                         width: 260,
                         minWidth: 240,
                         cellTemplate: function (container, cellInfo) {
@@ -221,7 +217,6 @@
 
                             const portLinkStyle = "color: #2563eb; text-decoration: none; font-weight: 700; cursor: pointer; white-space: nowrap;";
 
-                            // Utilizziamo un contenitore flessibile senza wrap, forzando la visualizzazione completa
                             $(container).html(`
                                 <div style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; font-family:sans-serif; padding:6px 0; white-space: nowrap; width: max-content;">
                                     <div style="display:flex; align-items:center; gap:5px; flex-shrink: 0;">
@@ -240,7 +235,7 @@
                         }
                     },
                     {
-                        dataField: "status", // o "statusDesc"
+                        dataField: "status",
                         caption: "STATUS",
                         alignment: "center",
                         cellTemplate: function(container, cellInfo) {
