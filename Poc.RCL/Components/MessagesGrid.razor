@@ -51,19 +51,37 @@
             "SURVEY": { bg: "#e8f5e9", text: "#2e7d32", icon: "bi-clipboard-check" }
         };
 
+        let activeFilters = [];
+
         // Funzione di filtraggio AJAX globale
         window.FilterMessagesGrid = function (element) {
             const gridElement = $("#@_gridId");
             if (!gridElement.length) return;
 
             const gridInstance = gridElement.dxDataGrid("instance");
+            // Codici passati dalla card (es. ["SAILING"] o ["COSP", "COSP TRANSIT"])
             const targetTypes = $(element).data("codes") || [];
 
             if (typeof msgGridLoadPanel !== 'undefined' && msgGridLoadPanel) msgGridLoadPanel.show();
 
+            // Logica di deactivation dei filtri:
+            // Se l'array è vuoto (pulsante "Clear Filter") oppure se si tratta di un filtro già attivo, svuotare
+            if (targetTypes.length === 0 || JSON.stringify(activeFilters) === JSON.stringify(targetTypes)) {
+                activeFilters = []; // Resetta i filtri attivi
+                // Rimuovere effetto visivo di selezione "active" da tutte le card
+                $(".deactivation-card-class").removeClass("active-filter-style");
+            } else {
+                activeFilters = targetTypes; 
+                $(".deactivation-card-class").removeClass("active-filter-style");
+                $(element).addClass("active-filter-style");
+            }
+
+            if (gridInstance) gridInstance.beginCustomLoading("Filtering...");
+
+            // Construzione dell'URL dinamico per il backend
             let url = "/Index?handler=FilteredMessages";
-            if (targetTypes.length > 0) {
-                url += "&" + targetTypes.map(t => `types=${encodeURIComponent(t)}`).join("&");
+            if (activeFilters.length > 0) {
+                url += "&" + activeFilters.map(t => `types=${encodeURIComponent(t)}`).join("&");
             }
 
             $.ajax({
@@ -71,11 +89,16 @@
                 type: "GET",
                 dataType: "json",
                 success: function (newMessages) {
-                    if (gridInstance) gridInstance.option("dataSource", newMessages);
+                    if (gridInstance) {
+                        gridInstance.option("dataSource", newMessages);
+                        gridInstance.refresh();
+                    }
                     $("[id='@(_gridId)-visible']").text(newMessages.length);
                 },
-                error: function (xhr, status, error) { console.error("Errore AJAX:", error); },
-                complete: function () { if (typeof msgGridLoadPanel !== 'undefined' && msgGridLoadPanel) msgGridLoadPanel.hide(); }
+                error: function (xhr, status, error) {
+                    console.error("Errore durante il filtraggio AJAX:", error);
+                },
+                complete: function () { if (gridInstance) gridInstance.endCustomLoading(); }
             });
         };
 
