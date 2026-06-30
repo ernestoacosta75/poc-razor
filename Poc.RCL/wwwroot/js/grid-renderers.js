@@ -63,21 +63,27 @@ const CellRenderers = {
 
     RouteFlow: (val, data, cfg) => {
         const isTransit = val.toUpperCase().includes("CANAL") || (data.messageTypeDesc && data.messageTypeDesc.toUpperCase().includes("TRANSIT"));
+        const destinationValue = data[cfg.toPortFld];
+        const hasDestination = destinationValue !== null && destinationValue !== undefined && String(destinationValue).trim() !== "";
+
         return `
-            <div style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; font-family:sans-serif; padding:6px 0;">
-                <div style="display:flex; align-items:center; gap:5px;">
-                    ${isTransit
-                        ? `<i class="bi bi-arrow-left-right" style="color:#f2b413; font-size:13px; font-weight:bold;"></i>`
-                        : `<i class="bi bi-geo-alt-fill" style="color:#f0b822; font-size:14px;"></i>`}
-                    <span style="color:${isTransit ? "#6366f1" : "#3b82f6"}; letter-spacing:0.3px;">${val.toUpperCase()}</span>
-                </div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; font-family:sans-serif; padding:6px 0;">
+            <div style="display:flex; align-items:center; gap:5px;">
+                ${isTransit
+                ? `<i class="bi bi-arrow-left-right" style="color:#f2b413; font-size:13px; font-weight:bold;"></i>`
+                : `<i class="bi bi-geo-alt-fill" style="color:#f0b822; font-size:14px;"></i>`}
+                <span style="color:${isTransit ? "#6366f1" : "#3b82f6"}; letter-spacing:0.3px;">${val.toUpperCase()}</span>
+            </div>
+
+            ${hasDestination ? `
                 <i class="bi bi-arrow-right" style="color:#f2b413; font-size:14px; font-weight:bold;"></i>
                 <div style="display:flex; align-items:center; gap:5px;">
                     ${data[cfg.routeTypeFld] === "land"
-                        ? `<i class="bi bi-triangle-fill" style="color:#f59e0b; font-size:9px;"></i>`
-                        : `<i class="bi bi-flag-fill" style="color:#eab308; font-size:13px;"></i>`}
-                    <span style="color:#7f7f7f; letter-spacing:0.3px;">${(data[cfg.toPortFld] || "N/A").toUpperCase()}</span>
+                    ? `<i class="bi bi-triangle-fill" style="color:#f59e0b; font-size:9px;"></i>`
+                    : `<i class="bi bi-flag-fill" style="color:#eab308; font-size:13px;"></i>`}
+                    <span style="color:#7f7f7f; letter-spacing:0.3px;">${destinationValue.toUpperCase()}</span>
                 </div>
-            </div>`;
+            ` : ''}
+        </div>`;
     }
 };

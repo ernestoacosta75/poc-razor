@@ -23,7 +23,7 @@ namespace Poc.Data.Infrastructure.Services
                 new(8,  "MSC GRANDIOSA", "MG", "#f43f5e", "grandiosa.captain@msc.com", "Palermo",  "FE502E", "COSP Transit", "COT",     d.AddHours(11).AddMinutes(15), "11:15", d.AddHours(13).AddMinutes(0),  "SUEZ",        "SHANGHAI",   true),
                 new(9,  "MSC ORCHESTRA", "MO", "#0ea5e9", "orchestra.captain@msc.com", "Singapore","FE301W", "Refueling", "BRF",   d.AddHours(14).AddMinutes(0),  "14:00", d.AddHours(15).AddMinutes(30), "SINGAPORE",   "PIRAEUS",    false),
                 new(10, "MSC MERAVIGLIA","MM", "#06b6d4", "meraviglia.captain@msc.com","Valencia", "FE401E", "Sludge", "SDC",     d.AddHours(9).AddMinutes(0),   "09:00", d.AddHours(10).AddMinutes(45), "VALENCIA",    "LE HAVRE",   false),
-                new(11, "MSC MAGNIFICA", "MN", "#84cc16", "magnifica.captain@msc.com", "Rotterdam","FE201N", "EGCS", "EWE",       d.AddHours(8).AddMinutes(0),   "08:00", d.AddHours(9).AddMinutes(15),  "ROTTERDAM",   "ALGECIRAS",  false),
+                new(11, "MSC MAGNIFICA", "MN", "#84cc16", "magnifica.captain@msc.com", "Rotterdam","FE201N", "EGCS", "EWE",       d.AddHours(8).AddMinutes(0),   "08:00", d.AddHours(9).AddMinutes(15),  "ROTTERDAM",   null,  false),
             };
         }
         public async Task<MessagesTotalDto> GetMessagesTotalAsync()
