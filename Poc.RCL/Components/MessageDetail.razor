@@ -1,0 +1,182 @@
+@using Poc.RCL.Models
+@using System.Text.Json
+
+@{
+    var _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    var attachmentsJson = JsonSerializer.Serialize(Data.Attachments, _jsonOptions);
+    var commentsJson = JsonSerializer.Serialize(Data.Comments, _jsonOptions);
+    var syncHistoryJson = JsonSerializer.Serialize(Data.SyncHistory, _jsonOptions);
+    var messageTypeJson = JsonSerializer.Serialize(Data.MessageType, _jsonOptions);
+}
+
+<div class="telex-detail-wrapper">
+    <div class="telex-detail-topbar">
+        <a href="/" class="telex-detail-back"><i class="bi bi-arrow-left"></i> Messages</a>
+        <span id="@(_id)-type-badge" class="telex-detail-type-badge"></span>
+        <div class="telex-detail-actions">
+            <button type="button" class="telex-icon-btn" title="Download"><i class="bi bi-download"></i></button>
+            <button type="button" class="telex-icon-btn" title="Print"><i class="bi bi-printer"></i></button>
+            <button type="button" class="telex-contact-btn"><i class="bi bi-send-fill"></i> Contact Captain</button>
+        </div>
+    </div>
+
+    <div class="telex-detail-header">
+        <div class="telex-detail-title">
+            <span class="telex-detail-vessel">@Data.VesselName</span>
+            <span class="telex-detail-voyage">@Data.Voyage</span>
+        </div>
+    </div>
+
+    <div id="@(_id)-tabs" class="telex-detail-tabs"></div>
+
+    <div id="@(_id)-panel" class="telex-detail-panel"></div>
+
+    <pre id="@(_id)-raw-content" style="display:none;">@Data.OriginalContent</pre>
+</div>
+
+<script>
+    (function () {
+        const attachments = @((MarkupString)attachmentsJson);
+        const comments = @((MarkupString)commentsJson);
+        const syncHistory = @((MarkupString)syncHistoryJson);
+        const messageType = @((MarkupString)messageTypeJson);
+
+        function renderTypeBadge() {
+            const theme = window.MessageTypeTheme.resolve(messageType);
+            const iconHtml = window.MessageTypeTheme.iconHtml(theme.icon);
+
+            $("#@(_id)-type-badge")
+                .css({ background: theme.bg, color: theme.text })
+                .html(`${iconHtml} ${messageType}`);
+        }
+
+        const tabItems = [
+            { text: "Telex View", icon: "bi bi-file-earmark-text" },
+            { text: "Attachments", icon: "bi bi-paperclip", count: attachments.length },
+            { text: "Comments", icon: "bi bi-chat-left-text", count: comments.length },
+            { text: "Sync History", icon: "bi bi-arrow-repeat", count: syncHistory.length }
+        ];
+
+        function emptyStateHtml(label) {
+            return `<div class="telex-empty-state">${label}</div>`;
+        }
+
+        function telexViewTemplate() {
+            const rawText = document.getElementById("@(_id)-raw-content").textContent;
+            return `
+                <div class="telex-original-card">
+                    <div class="telex-original-card-header">
+                        <span><i class="bi bi-file-earmark-text"></i> Original Telex Content</span>
+                        <button type="button" class="telex-copy-btn" onclick="window['TelexDetail_@(_id)'].copyContent()">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                    </div>
+                    <pre class="telex-original-content">${rawText}</pre>
+                </div>
+            `;
+        }
+
+        function attachmentsTemplate() {
+            if (!attachments.length) return emptyStateHtml("No attachments");
+            return `<div class="telex-list">` + attachments.map((a, index) => `
+                <div class="telex-list-row">
+                    <i class="bi bi-file-earmark-arrow-down telex-list-icon"></i>
+                    <div class="telex-list-main">
+                        <div class="telex-list-title">${a.fileName}</div>
+                        <div class="telex-list-sub">${a.sizeLabel} &middot; ${new Date(a.uploadedDate).toLocaleString()}</div>
+                    </div>
+                    <a class="telex-list-download-btn" title="Download ${a.fileName}" href="?handler=Attachment&id=@(Data.MessageId)&index=${index}">
+                        <i class="bi bi-download"></i>
+                    </a>
+                </div>
+            `).join("") + `</div>`;
+        }
+
+        function commentsTemplate() {
+            if (!comments.length) return emptyStateHtml("No comments");
+            return `<div class="telex-list">` + comments.map(c => `
+                <div class="telex-list-row">
+                    <div class="telex-comment-avatar">${(c.author || "?").charAt(0).toUpperCase()}</div>
+                    <div class="telex-list-main">
+                        <div class="telex-list-title">${c.author}</div>
+                        <div class="telex-comment-text">${c.text}</div>
+                        <div class="telex-list-sub">${new Date(c.createdDate).toLocaleString()}</div>
+                    </div>
+                </div>
+            `).join("") + `</div>`;
+        }
+
+        function formatSyncDate(value) {
+            return new Date(value).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+        }
+
+        function syncHistoryTemplate() {
+            if (!syncHistory.length) return emptyStateHtml("No sync history");
+            return `<div class="telex-sync-timeline">` + syncHistory.map((s, index) => `
+                <div class="telex-sync-row">
+                    <div class="telex-sync-node"><i class="bi bi-arrow-repeat"></i></div>
+                    <div class="telex-sync-entry${index === 0 ? " telex-sync-entry-open" : ""}">
+                        <div class="telex-sync-entry-header" onclick="this.closest('.telex-sync-entry').classList.toggle('telex-sync-entry-open')">
+                            <span class="telex-sync-entry-date">${formatSyncDate(s.date)}</span>
+                            <span class="telex-sync-entry-toggle">${s.changes.length} field${s.changes.length === 1 ? "" : "s"} modified <i class="bi bi-chevron-down"></i></span>
+                        </div>
+                        <div class="telex-sync-entry-body">
+                            ${s.changes.map(c => `
+                                <div class="telex-sync-field-row">
+                                    <span class="telex-sync-field-name">${c.fieldName}</span>
+                                    <span class="telex-sync-field-old">${c.oldValue}</span>
+                                    <i class="bi bi-arrow-right telex-sync-field-arrow"></i>
+                                    <span class="telex-sync-field-new">${c.newValue}</span>
+                                </div>
+                            `).join("")}
+                        </div>
+                    </div>
+                </div>
+            `).join("") + `</div>`;
+        }
+
+        $(document).ready(function () {
+            renderTypeBadge();
+
+            const tabPanel = $("#@(_id)-panel").dxTabPanel({
+                items: [
+                    { title: "Telex View", template: telexViewTemplate },
+                    { title: "Attachments", template: attachmentsTemplate },
+                    { title: "Comments", template: commentsTemplate },
+                    { title: "Sync History", template: syncHistoryTemplate }
+                ],
+                selectedIndex: 0,
+                swipeEnabled: false,
+                animationEnabled: false,
+                showNavButtons: false
+            }).dxTabPanel("instance");
+
+            $("#@(_id)-tabs").dxTabs({
+                items: tabItems,
+                selectedIndex: 0,
+                itemTemplate: function (itemData, itemIndex, itemElement) {
+                    const badge = itemData.count !== undefined
+                        ? `<span class="telex-tab-badge">${itemData.count}</span>`
+                        : "";
+                    $(itemElement).html(`
+                        <span class="telex-tab-item">
+                            <i class="${itemData.icon}"></i>
+                            <span>${itemData.text}</span>
+                            ${badge}
+                        </span>
+                    `);
+                },
+                onSelectionChanged: function (e) {
+                    tabPanel.option("selectedIndex", tabItems.indexOf(e.addedItems[0]));
+                }
+            });
+
+            window["TelexDetail_@(_id)"] = {
+                copyContent: function () {
+                    const text = document.getElementById("@(_id)-raw-content").textContent;
+                    navigator.clipboard.writeText(text);
+                }
+            };
+        });
+    })();
+</script>

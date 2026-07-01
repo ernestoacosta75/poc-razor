@@ -467,6 +467,475 @@
         }
 }
 
+/* ==========================================================================
+   Message Detail Page — Telex View / Attachments / Comments / Sync History
+   ========================================================================== */
+
+.telex-detail-wrapper {
+    padding: 1.5rem;
+    font-family: var(--font-family);
+}
+
+.telex-detail-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: #ffffff;
+    border-radius: var(--card-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.telex-detail-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.telex-detail-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.telex-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    color: #4b5563;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+    .telex-icon-btn:hover {
+        background: #f3f4f6;
+    }
+
+.telex-contact-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #eab308;
+    color: #1f2937;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+    .telex-contact-btn:hover {
+        background: #d4a106;
+    }
+
+.telex-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.telex-detail-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 14px;
+    text-decoration: none;
+}
+
+.telex-detail-back:hover {
+    background: #f3f4f6;
+    color: var(--text-primary);
+}
+
+.telex-detail-title {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+}
+
+.telex-detail-vessel {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.telex-detail-voyage {
+    background: #fef9c3;
+    color: #854d0e;
+    border: 1px solid #fde047;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Custom dxTabs header, styled to match the pill/underline look of the mock */
+.telex-detail-tabs {
+    background: #ffffff;
+    border-radius: var(--card-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+    .telex-detail-tabs .dx-tabs-wrapper {
+        display: flex;
+        gap: 0.4rem;
+    }
+
+    .telex-detail-tabs .dx-tab {
+        border-radius: 8px;
+        padding: 0.55rem 1rem;
+        border: none !important;
+        background: transparent;
+    }
+
+    .telex-detail-tabs .dx-tab-selected {
+        background: #fffbeb;
+    }
+
+.telex-tab-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.dx-tab-selected .telex-tab-item {
+    color: #b45309;
+}
+
+.telex-tab-item .bi {
+    font-size: 14px;
+}
+
+.telex-tab-badge {
+    background: #e5e7eb;
+    color: #374151;
+    border-radius: 20px;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.dx-tab-selected .telex-tab-badge {
+    background: #fde68a;
+    color: #92400e;
+}
+
+/* dxTabPanel content area: its own native tab strip is hidden because
+   navigation is driven by the custom dxTabs above */
+.telex-detail-panel.dx-tabpanel .dx-tabpanel-tabs {
+    display: none;
+}
+
+.telex-detail-panel .dx-multiview-wrapper,
+.telex-detail-panel .dx-multiview-item-content {
+    background: transparent;
+}
+
+.telex-original-card {
+    background: #ffffff;
+    border-radius: var(--card-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+    padding: 1.25rem;
+}
+
+.telex-original-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+    .telex-original-card-header .bi {
+        color: #d97706;
+        margin-right: 6px;
+    }
+
+.telex-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    color: #374151;
+}
+
+    .telex-copy-btn:hover {
+        background: #f3f4f6;
+    }
+
+.telex-original-content {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin: 0;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #374151;
+    white-space: pre-wrap;
+}
+
+/* Attachments / Comments / Sync History lists */
+.telex-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.telex-list-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #ffffff;
+    border-radius: var(--card-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+    padding: 0.85rem 1rem;
+}
+
+.telex-list-icon {
+    font-size: 16px;
+    color: #d97706;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.telex-list-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.telex-list-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.telex-list-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.telex-list-download-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    color: #4b5563;
+    cursor: pointer;
+    font-size: 13px;
+    flex-shrink: 0;
+    align-self: center;
+    text-decoration: none;
+}
+
+    .telex-list-download-btn:hover {
+        background: #f3f4f6;
+        color: #1f2937;
+    }
+
+.telex-comment-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #d97706;
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.telex-comment-text {
+    font-size: 13px;
+    color: #374151;
+    margin: 4px 0;
+}
+
+/* Sync History timeline: connected nodes with expandable field-change diffs */
+.telex-sync-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.telex-sync-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    position: relative;
+}
+
+    .telex-sync-row:not(:last-child)::before {
+        content: "";
+        position: absolute;
+        top: 32px;
+        left: 15px;
+        width: 2px;
+        bottom: -1rem;
+        background: #e5e7eb;
+    }
+
+.telex-sync-node {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #d97706;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+.telex-sync-entry {
+    flex: 1;
+    min-width: 0;
+    background: #ffffff;
+    border-radius: var(--card-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+}
+
+.telex-sync-entry-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.telex-sync-entry-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #b45309;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+    .telex-sync-entry-toggle .bi-chevron-down {
+        transition: transform 0.15s;
+    }
+
+.telex-sync-entry-body {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0 1rem 1rem;
+}
+
+.telex-sync-entry-open {
+    background: #fafafa;
+}
+
+    .telex-sync-entry-open .telex-sync-entry-body {
+        display: flex;
+    }
+
+    .telex-sync-entry-open .telex-sync-entry-toggle .bi-chevron-down {
+        transform: rotate(180deg);
+    }
+
+.telex-sync-field-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    font-size: 12px;
+    flex-wrap: wrap;
+}
+
+.telex-sync-field-name {
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 100px;
+}
+
+.telex-sync-field-old {
+    text-decoration: line-through;
+    background: #fee2e2;
+    color: #b91c1c;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.telex-sync-field-new {
+    background: #dcfce7;
+    color: #166534;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.telex-sync-field-arrow {
+    color: var(--text-secondary);
+}
+
+.telex-empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text-secondary);
+    font-size: 13px;
+    background: #ffffff;
+    border-radius: var(--card-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+/* Row clicked in MessagesGrid navigates to the detail page */
+.messages-grid-wrapper .dx-row {
+    cursor: pointer;
+}
+
 /* Compatibilità icone DevExtreme con il layout KPI */
 .kpi-metric-row .dx-icon {
     display: inline-flex !important;

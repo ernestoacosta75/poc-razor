@@ -1,4 +1,5 @@
-﻿using Poc.Data.Application.Services;
+﻿using System.Text;
+using Poc.Data.Application.Services;
 using Poc.Data.Domain.Constants;
 using Poc.RCL.Models;
 
@@ -154,6 +155,145 @@ namespace Poc.Data.Infrastructure.Services
                 .ToList();
 
             return Task.FromResult(filteredMessages);
+        }
+
+        public Task<MessageDetailDto?> GetMessageDetailAsync(int id)
+        {
+            var message = _mockMessages.FirstOrDefault(m => m.Id == id);
+
+            if (message is null)
+            {
+                return Task.FromResult<MessageDetailDto?>(null);
+            }
+
+            var rnd = new Random(id);
+
+            var callsign = $"3F{(char)('A' + rnd.Next(0, 26))}{rnd.Next(1, 9)}";
+            var imo = (9000000 + rnd.Next(0, 999999)).ToString();
+            var berth = rnd.Next(1, 15);
+            var eta = message.SyncDate.AddDays(rnd.Next(1, 4)).AddHours(rnd.Next(0, 12));
+            var distance = rnd.Next(300, 5000);
+            var draftFwd = Math.Round(10 + rnd.NextDouble() * 6, 1);
+            var draftAft = Math.Round(draftFwd - rnd.Next(1, 3), 1);
+            var cargo = rnd.Next(4000, 15000);
+            var bunker = rnd.Next(300, 2000);
+            var weatherOptions = new[] { "GOOD", "MODERATE", "ROUGH" };
+            var weather = weatherOptions[rnd.Next(weatherOptions.Length)];
+
+            var originalContent =
+                $"""
+                 VESSEL: {message.VesselName}
+                 CALLSIGN: {callsign}
+                 IMO: {imo}
+                 VOYAGE: {message.VoyageCode}
+
+                 SAILING REPORT
+                 PORT: {message.FromPort}
+                 BERTH: {berth}
+
+                 SAILING DATE/TIME:
+                 {message.MessageDate:dd/MM/yyyy} {message.MessageTime} LT
+
+                 NEXT PORT: {message.ToPort ?? "N/A"}
+                 ETA: {eta:dd/MM/yyyy HH:mm} LT
+                 DISTANCE: {distance} NM
+
+                 DRAFT FWD: {draftFwd:F1} M
+                 DRAFT AFT: {draftAft:F1} M
+
+                 CARGO: {cargo} TEU
+                 BUNKER ROB: {bunker} MT
+
+                 WEATHER: {weather}
+                 SEA STATE: {weather}
+                 """;
+
+            var attachments = GenerateAttachments(message);
+
+            var comments = new List<CommentDto>
+            {
+                new(Author: "Ops Team", Text: "Confirmed report received, no anomalies to signal.", CreatedDate: message.SyncDate.AddMinutes(-30)),
+                new(Author: message.CaptainEmail, Text: "Report sent as per schedule.", CreatedDate: message.SyncDate.AddMinutes(-45))
+            };
+
+            string FormatDateTime(DateTime d) => d.ToString("dd MMM yyyy, HH:mm");
+
+            var fieldChangePool = new List<FieldChangeDto>
+            {
+                new("ETA Date", FormatDateTime(eta.AddHours(-rnd.Next(2, 30))), FormatDateTime(eta)),
+                new("Draft Fwd", $"{Math.Round(draftFwd - 0.3, 1):F1} M", $"{draftFwd:F1} M"),
+                new("Draft Aft", $"{Math.Round(draftAft - 0.2, 1):F1} M", $"{draftAft:F1} M"),
+                new("Cargo", $"{cargo - rnd.Next(50, 300)} TEU", $"{cargo} TEU"),
+                new("Bunker ROB", $"{bunker + rnd.Next(20, 80)} MT", $"{bunker} MT"),
+                new("Berth", Math.Max(1, berth - 1).ToString(), berth.ToString()),
+                new("Distance", $"{distance + rnd.Next(50, 200)} NM", $"{distance} NM")
+            };
+
+            var syncHistory = new List<int> { 0, 15, 30, 45 }
+                .Select(offset => new SyncHistoryEntryDto(
+                    Date: message.SyncDate.AddMinutes(-offset),
+                    Changes: fieldChangePool.OrderBy(_ => rnd.Next()).Take(rnd.Next(1, 3)).ToList()))
+                .ToList();
+
+            var detail = new MessageDetailDto(
+                MessageId: message.Id,
+                VesselName: message.VesselName,
+                Voyage: message.VoyageCode,
+                MessageType: message.MessageTypeDesc.ToUpperInvariant(),
+                OriginalContent: originalContent,
+                Attachments: attachments,
+                Comments: comments,
+                SyncHistory: syncHistory
+            );
+
+            return Task.FromResult<MessageDetailDto?>(detail);
+        }
+
+        public Task<AttachmentFileDto?> GetAttachmentFileAsync(int messageId, int attachmentIndex)
+        {
+            var message = _mockMessages.FirstOrDefault(m => m.Id == messageId);
+            if (message is null)
+            {
+                return Task.FromResult<AttachmentFileDto?>(null);
+            }
+
+            var attachments = GenerateAttachments(message);
+            if (attachmentIndex < 0 || attachmentIndex >= attachments.Count)
+            {
+                return Task.FromResult<AttachmentFileDto?>(null);
+            }
+
+            var attachment = attachments[attachmentIndex];
+            var summaryLines = new[]
+            {
+                $"Attachment: {attachment.FileName}",
+                $"Vessel: {message.VesselName} ({message.VoyageCode})",
+                $"Size: {attachment.SizeLabel}",
+                $"Uploaded: {attachment.UploadedDate:dd MMM yyyy, HH:mm}",
+                "",
+                "Placeholder file generated from mock data (no real attachment content is stored in this POC)."
+            };
+
+            var isPdf = attachment.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+            var content = isPdf
+                ? MinimalPdfWriter.Build(summaryLines)
+                : Encoding.UTF8.GetBytes(string.Join("\n", summaryLines));
+            var contentType = isPdf ? "application/pdf" : "text/plain";
+
+            return Task.FromResult<AttachmentFileDto?>(new AttachmentFileDto(content, contentType, attachment.FileName));
+        }
+
+        private static List<AttachmentDto> GenerateAttachments(MessageDto message)
+        {
+            var rnd = new Random(message.Id);
+            var extensions = new[] { "pdf", "txt" };
+
+            return Enumerable.Range(1, rnd.Next(0, 3))
+                .Select(i => new AttachmentDto(
+                    FileName: $"telex_{message.VoyageCode}_{i}.{extensions[(i - 1) % extensions.Length]}",
+                    SizeLabel: $"{rnd.Next(80, 900)} KB",
+                    UploadedDate: message.SyncDate.AddMinutes(-rnd.Next(5, 120))))
+                .ToList();
         }
     }
 }

@@ -1,0 +1,9 @@
+﻿@page "{id:int}"
+@model MessageDetailModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *, Poc.RCL
+@{
+    ViewData["Title"] = $"{Model.Detail.VesselName} - {Model.Detail.Voyage}";
+}
+
+<message-detail data="Model.Detail" />
