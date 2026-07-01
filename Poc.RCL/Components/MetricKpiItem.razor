@@ -9,7 +9,15 @@
      class="kpi-metric-row"
      style="text-decoration: none; color: inherit; display: flex; cursor: pointer;">
 
-    <i class="@Item.Icon kpi-icon" style="color: @(string.IsNullOrEmpty(IconColor) ? "currentColor" : IconColor) !important;"></i>
+    @if (Item.Icon.Contains("bi-") || Item.Icon.Contains("bi "))
+    {
+        <i class="@Item.Icon kpi-icon" style="color: @(string.IsNullOrEmpty(IconColor) ? "currentColor" : IconColor) !important;"></i>
+    }
+    else
+    {
+        <i class="dx-icon dx-icon-@Item.Icon kpi-icon" 
+           style="font-family: 'DXIcons' !important; font-style: normal; font-size: 16px; color: @(string.IsNullOrEmpty(IconColor) ? "currentColor" : IconColor) !important;"></i>
+    }
     <span class="kpi-value">@Item.Value</span>
     <span class="kpi-label">@Item.Label</span>
 </a>

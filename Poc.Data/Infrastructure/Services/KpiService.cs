@@ -1,4 +1,5 @@
 ﻿using Poc.Data.Application.Services;
+using Poc.Data.Domain.Constants;
 using Poc.RCL.Models;
 
 namespace Poc.Data.Infrastructure.Services
@@ -52,143 +53,94 @@ namespace Poc.Data.Infrastructure.Services
                 .GroupBy(_ => _.MessageTypeCode)
                 .ToDictionary(_ => _.Key, _ => _.Count());
 
+            var transitCodes = _mockMessages
+                .Where(_ => _.MessageTypeDesc != null && _.MessageTypeDesc.Contains(Constants.TransitGroup, StringComparison.OrdinalIgnoreCase))
+                .Select(_ => _.MessageTypeCode)
+                .Distinct()
+                .ToArray();
+
+            var egcsCodes = _mockMessages
+                .Where(_ => _.MessageTypeDesc != null && _.MessageTypeDesc.Contains(Constants.EgcsGroup, StringComparison.OrdinalIgnoreCase))
+                .Select(_ => _.MessageTypeCode)
+                .Distinct()
+                .ToArray();
+
+            var delayCodes = _mockMessages
+                .Where(_ => _.MessageTypeDesc != null && _.MessageTypeDesc.Contains(Constants.DelayGroup, StringComparison.OrdinalIgnoreCase))
+                .Select(_ => _.MessageTypeCode)
+                .Distinct()
+                .ToArray();
+
+            var sludgeCodes = _mockMessages
+                .Where(_ => _.MessageTypeDesc != null && _.MessageTypeDesc.Contains(Constants.SludgeGroup, StringComparison.OrdinalIgnoreCase))
+                .Select(_ => _.MessageTypeCode)
+                .Distinct()
+                .ToArray();
+
             int GetCount(params string[] codes)
             {
                 return codes.Sum(_ => messagesCount.GetValueOrDefault(_, 0));
             }
 
             return new List<KpiGroupDto>()
-    {
-        new KpiGroupDto(
-            Title: "Operations",
-            HeaderIcon: "bi bi-backpack-fill",
-            AccentColor: "#1e40af", // Blue
-            Metrics: new()
             {
-                new MetricKpiDto("Sailing", ["SAI"], GetCount("SAI").ToString(), "bi bi-water"), // Sostituito bi-tsunami
-                new MetricKpiDto("Berthing", ["ARR"], GetCount("ARR").ToString(), "bi bi-pin"),    // Sostituito bi-geo-alt-fill
-            }
-        ),
-        new KpiGroupDto(
-            Title: "Noon Reports",
-            HeaderIcon: "sun", // Icona report/scheda
-            AccentColor: "#8b5cf6", // Porpora
-            Metrics: new()
-            {
-                new MetricKpiDto("At Sea", ["IN1"], GetCount("IN1").ToString(), "contentready"),
-                new MetricKpiDto("At Port", ["PNO"], GetCount("PNO").ToString(), "home"), // Sostituito bi-building
-            }
-        ),
-        new KpiGroupDto(
-            Title: "Sea Passages",
-            HeaderIcon: "decreaselinespacing",
-            AccentColor: "#06b6d4", // Cyan
-            Metrics: new()
-            {
-                new MetricKpiDto("COSP", ["COSP"], GetCount("COSP").ToString(), "bi bi-play-circle-fill"),
-                new MetricKpiDto("EOSP", ["EOSP"], GetCount("EOSP").ToString(), "bi bi-stop-circle-fill"),
-                new MetricKpiDto("Transit", ["EOT", "COT", "NOT"], GetCount("EOT", "COT", "NOT").ToString(), "repeat") // Sostituito bi-arrow-left-right
-            }
-        ),
-        new KpiGroupDto(
-            Title: "Fuel",
-            HeaderIcon: "bi bi-fuel-pump", // Icona veicolo/motore come alternativa a fuel-pump
-            AccentColor: "#b45309", // Ambra
-            Metrics: new()
-            {
-                new MetricKpiDto("Refueling", ["BRF"], GetCount("BRF").ToString(), "car"),
-                new MetricKpiDto("Bunker Req.", ["BUN"], GetCount("BUN").ToString(), "doc")
-            }
-        ),
-        new KpiGroupDto(
-            Title: "Other",
-            HeaderIcon: "checkmarkcircle",
-            AccentColor: "#10b981", // Verde
-            Metrics: new()
-            {
-                new MetricKpiDto("Delays", ["DEL", "DSA", "DSP"], GetCount("DEL", "DSA", "DSP").ToString(), "clock"),
-                new MetricKpiDto("Sludge", ["SDC", "SLP"], GetCount("SDC", "SLP").ToString(), "trash"),
-                new MetricKpiDto("EGCS", ["EWD", "EWE"], GetCount("EWD", "EWE").ToString(), "background"),
-                new MetricKpiDto("Survey", ["SUR"], GetCount("SUR").ToString(), "event"),
-                new MetricKpiDto("Shore Power", ["SPW"], GetCount("SWP").ToString(), "box")
-            },
-            IsGrid: true
-        )
-    };
+                new KpiGroupDto(
+                    Title: "Operations",
+                    HeaderIcon: "bi bi-backpack-fill",
+                    AccentColor: "#1e40af",
+                    Metrics: new()
+                    {
+                        new MetricKpiDto("Sailing", ["SAI"], GetCount("SAI").ToString(), "bi bi-water"), 
+                        new MetricKpiDto("Berthing", ["ARR"], GetCount("ARR").ToString(), "bi bi-pin"),
+                    }
+                ),
+                new KpiGroupDto(
+                    Title: "Noon Reports",
+                    HeaderIcon: "sun", 
+                    AccentColor: "#8b5cf6", 
+                    Metrics: new()
+                    {
+                        new MetricKpiDto("At Sea", ["IN1"], GetCount("IN1").ToString(), "contentlayout"),
+                        new MetricKpiDto("At Port", ["PNO"], GetCount("PNO").ToString(), "home"), 
+                    }
+                ),
+                new KpiGroupDto(
+                    Title: "Sea Passages",
+                    HeaderIcon: "decreaselinespacing",
+                    AccentColor: "#06b6d4", 
+                    Metrics: new()
+                    {
+                        new MetricKpiDto("COSP", ["COSP"], GetCount("COSP").ToString(), "video"),
+                        new MetricKpiDto("EOSP", ["EOSP"], GetCount("EOSP").ToString(), "indeterminatestate"),
+                        new MetricKpiDto("Transit", transitCodes, GetCount(transitCodes).ToString(), "optionsoutline") 
+                    }
+                ),
+                new KpiGroupDto(
+                    Title: "Fuel",
+                    HeaderIcon: "fill",
+                    AccentColor: "#b45309",
+                    Metrics: new()
+                    {
+                        new MetricKpiDto("Refueling", ["BRF"], GetCount("BRF").ToString(), "fill"),
+                        new MetricKpiDto("Bunker Req.", ["BUN"], GetCount("BUN").ToString(), "textdocument")
+                    }
+                ),
+                new KpiGroupDto(
+                    Title: "Other",
+                    HeaderIcon: "checkmarkcircle",
+                    AccentColor: "#10b981", 
+                    Metrics: new()
+                    {
+                        new MetricKpiDto("Delays", delayCodes, GetCount(delayCodes).ToString(), "clock"),
+                        new MetricKpiDto("Sludge", sludgeCodes, GetCount(sludgeCodes).ToString(), "trash"),
+                        new MetricKpiDto("EGCS", egcsCodes, GetCount(egcsCodes).ToString(), "strike"),
+                        new MetricKpiDto("Survey", ["SUR"], GetCount("SUR").ToString(), "cardcontent"),
+                        new MetricKpiDto("Shore Power", ["SPW"], GetCount("SWP").ToString(), "box")
+                    },
+                    IsGrid: true
+                )
+            };
         }
-
-        //public async Task<List<KpiGroupDto>> GetDashboardGroupsAsync()
-        //{
-        //    await Task.Delay(TimeSpan.FromSeconds(2));
-
-        //    var messagesCount = _mockMessages
-        //        .GroupBy(_ => _.MessageTypeCode)
-        //        .ToDictionary(_ => _.Key, _ => _.Count());
-
-        //    int GetCount(params string[] codes)
-        //    {
-        //        return codes.Sum(_ => messagesCount.GetValueOrDefault(_, 0));
-        //    }
-
-        //    return new List<KpiGroupDto>()
-        //    {
-        //        new KpiGroupDto(
-        //            Title: "Operations",
-        //            HeaderIcon: "dx-icon dx-icon-ship",
-        //            AccentColor: "#1e40af", // Blue
-        //            Metrics: new()
-        //            {
-        //                new MetricKpiDto("Sailing", ["SAI"], GetCount("SAI").ToString(), "bi bi-tsunami"),
-        //                new MetricKpiDto("Berthing", ["ARR"], GetCount("ARR").ToString(), "bi bi-geo-alt-fill"),
-        //            }
-        //        ),
-        //        new KpiGroupDto(
-        //            Title: "Noon Reports",
-        //            HeaderIcon: "bi bi-brightness-high-fill",
-        //            AccentColor: "#8b5cf6", // Porpora
-        //            Metrics: new()
-        //            {
-        //                new MetricKpiDto("At Sea", ["IN1"], GetCount("IN1").ToString(), "bi bi-water"),
-        //                new MetricKpiDto("At Port", ["PNO"], GetCount("PNO").ToString(), "bi bi-building"),
-        //            }
-        //        ),
-        //        new KpiGroupDto(
-        //            Title: "Sea Passages",
-        //            HeaderIcon: "bi bi-bezier2",
-        //            AccentColor: "#06b6d4", // Cyan
-        //            Metrics: new()
-        //            {
-        //                new MetricKpiDto("COSP", ["COSP"], GetCount("COSP").ToString(), "bi bi-play-circle-fill"),
-        //                new MetricKpiDto("EOSP", ["EOSP"], GetCount("EOSP").ToString(), "bi bi-stop-circle-fill"),
-        //                new MetricKpiDto("Transit", ["EOT", "COT", "NOT"], GetCount("EOT", "COT", "NOT").ToString(), "bi bi-arrow-left-right")
-        //            }
-        //        ),
-        //        new KpiGroupDto(
-        //            Title: "Fuel",
-        //            HeaderIcon: "bi bi-fuel-pump",
-        //            AccentColor: "#b45309", // Ambra
-        //            Metrics: new()
-        //            {
-        //                new MetricKpiDto("Refueling", ["BRF"], GetCount("BRF").ToString(), "bi bi-fuel-pump"),
-        //                new MetricKpiDto("Bunker Req.", ["BUN"], GetCount("BUN").ToString(), "bi bi-file-earmark-plus")
-        //            }
-        //        ),
-        //        new KpiGroupDto(
-        //            Title: "Other",
-        //            HeaderIcon: "bi bi-check-circle",
-        //            AccentColor: "#10b981", // Verde
-        //            Metrics: new()
-        //            {
-        //                new MetricKpiDto("Delays", ["DEL", "DSA", "DSP"], GetCount("DEL", "DSA", "DSP").ToString(), "bi bi-hourglass"),
-        //                new MetricKpiDto("Sludge", ["SDC", "SLP"], GetCount("SDC", "SLP").ToString(), "bi bi-trash-fill"),
-        //                new MetricKpiDto("EGCS", ["EWD", "EWE"], GetCount("EWD", "EWE").ToString(), "bi bi-wind"),
-        //                new MetricKpiDto("Survey", ["SUR"], GetCount("SUR").ToString(), "bi bi-clipboard-check-fill"),
-        //                new MetricKpiDto("Shore Power", ["SPW"], GetCount("SWP").ToString(), "bi bi-plug-fill")
-        //            },
-        //            IsGrid: true
-        //        )
-        //    };
-        //}
 
         public Task<List<MessageDto>> GetMessagesAsync(string[]? types = null)
         {
