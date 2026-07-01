@@ -3,11 +3,11 @@
     var codesJson = JsonSerializer.Serialize(Item.Code);
 }
 
-<a href="javascript:void(0);"
+<a href="javascript:void(0);" 
    data-codes='@codesJson'
    onclick="window.FilterMessagesGrid(this);"
-     class="kpi-metric-row"
-     style="text-decoration: none; color: inherit; display: flex; cursor: pointer;">
+   class="kpi-metric-row"
+   style="text-decoration: none; color: inherit; display: flex; cursor: pointer;">
 
     @if (Item.Icon.Contains("bi-") || Item.Icon.Contains("bi "))
     {

@@ -90,8 +90,8 @@ namespace Poc.Data.Infrastructure.Services
                     AccentColor: "#1e40af",
                     Metrics: new()
                     {
-                        new MetricKpiDto("Sailing", ["SAI"], GetCount("SAI").ToString(), "bi bi-water"), 
-                        new MetricKpiDto("Berthing", ["ARR"], GetCount("ARR").ToString(), "bi bi-pin"),
+                        new MetricKpiDto("Sailing", ["SAI"], GetCount("SAI").ToString(), "detailslayout"), 
+                        new MetricKpiDto("Berthing", ["ARR"], GetCount("ARR").ToString(), "pinright"),
                     }
                 ),
                 new KpiGroupDto(
@@ -101,7 +101,7 @@ namespace Poc.Data.Infrastructure.Services
                     Metrics: new()
                     {
                         new MetricKpiDto("At Sea", ["IN1"], GetCount("IN1").ToString(), "contentlayout"),
-                        new MetricKpiDto("At Port", ["PNO"], GetCount("PNO").ToString(), "home"), 
+                        new MetricKpiDto("At Port", ["PNO"], GetCount("PNO").ToString(), "bi bi-buildings-fill"), 
                     }
                 ),
                 new KpiGroupDto(
@@ -131,11 +131,11 @@ namespace Poc.Data.Infrastructure.Services
                     AccentColor: "#10b981", 
                     Metrics: new()
                     {
-                        new MetricKpiDto("Delays", delayCodes, GetCount(delayCodes).ToString(), "clock"),
+                        new MetricKpiDto("Delays", delayCodes, GetCount(delayCodes).ToString(), "bi bi-hourglass"),
                         new MetricKpiDto("Sludge", sludgeCodes, GetCount(sludgeCodes).ToString(), "trash"),
                         new MetricKpiDto("EGCS", egcsCodes, GetCount(egcsCodes).ToString(), "strike"),
                         new MetricKpiDto("Survey", ["SUR"], GetCount("SUR").ToString(), "cardcontent"),
-                        new MetricKpiDto("Shore Power", ["SPW"], GetCount("SWP").ToString(), "box")
+                        new MetricKpiDto("Shore Power", ["SPW"], GetCount("SWP").ToString(), "bi bi-plug-fill")
                     },
                     IsGrid: true
                 )
