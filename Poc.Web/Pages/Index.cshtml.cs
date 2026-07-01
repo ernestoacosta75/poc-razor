@@ -10,7 +10,6 @@ namespace Poc.Web.Pages
         private readonly IKpiService _kpiService;
         public List<KpiGroupDto> KpiGroups { get; set; } = new();
         public MessagesTotalDto? MessagesTotalDto { get; private set; }
-        public List<GridColumnDto> GridColumns { get; private set; } = new();
         public List<MessageDto> Messages { get; private set; } = new();
 
         public IndexModel(IKpiService kpiService)
@@ -20,8 +19,6 @@ namespace Poc.Web.Pages
 
         public async Task OnGetAsync()
         {
-            GridColumns = await _kpiService.GetGridConfigurationAsync();
-
             var kpiTask      = _kpiService.GetDashboardGroupsAsync();
             var totalTask    = _kpiService.GetMessagesTotalAsync();
             var messagesTask = _kpiService.GetMessagesAsync();
@@ -35,7 +32,7 @@ namespace Poc.Web.Pages
 
         public async Task<IActionResult> OnGetFilteredMessagesAsync(string[] types)
         {
-            // Recupera della lista filtrata dei messaggi
+            // Recupero della lista filtrata dei messaggi
             var filteredMessages = await _kpiService.GetMessagesAsync(types);
 
             return new JsonResult(filteredMessages);
