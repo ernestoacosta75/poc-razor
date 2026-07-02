@@ -1,6 +1,6 @@
 // Tema condiviso (colore + icona) per il tipo messaggio.
 // Usato sia dalla colonna TYPE di MessagesGrid.razor sia dal badge tipo in MessageDetail.razor.
-(function (window) {
+((window) => {
     const TYPE_PILL_THEMES = {
         "SAILING": { bg: "#e0f2fe", text: "#0284c7", icon: "detailslayout" },
         "BERTHING": { bg: "#eff6ff", text: "#1e40af", icon: "pinright" },
@@ -21,13 +21,13 @@
 
     const DEFAULT_THEME = { bg: "#e5e7eb", text: "#1f2937", icon: "bi bi-chat-left-text" };
 
-    function resolve(msgType) {
+    const resolve = (msgType) => {
         const normalized = (msgType || "").trim().toUpperCase();
         const key = Object.keys(TYPE_PILL_THEMES).find(k => normalized.includes(k)) || "";
         return TYPE_PILL_THEMES[key] || DEFAULT_THEME;
     }
 
-    function iconHtml(icon, style) {
+    const iconHtml = (icon, style) => {
         style = style || "";
         return icon.startsWith("bi ")
             ? `<i class="${icon}" style="${style}"></i>`

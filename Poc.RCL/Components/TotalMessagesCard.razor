@@ -38,7 +38,7 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", () => {
         $("#@ElementId").dxSparkline({
             dataSource: [@string.Join(",", Data?.HourlyTrendPoints ?? [])],
             type: "splinearea",

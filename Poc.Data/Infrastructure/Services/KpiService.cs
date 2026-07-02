@@ -34,8 +34,7 @@ namespace Poc.Data.Infrastructure.Services
 
             int currentCount = _mockMessages.Count;
 
-            // Ipotizziamo che ieri fossero ad esempio 8 per mantenere coerente
-            // il trend positivo
+            // Ipotizziamo che ieri fossero ad esempio 8 per mantenere coerente il trend positivo
             int yesterdayCount = 8;
 
             // Esempio di simulazione: Oggi alle 14:00 ci sono 22 msgs, ieri c'erano 18 ==> ((22 - 18) / 18) * 100 = +22.2%
@@ -55,7 +54,7 @@ namespace Poc.Data.Infrastructure.Services
                 .ToDictionary(_ => _.Key, _ => _.Count());
 
             var transitCodes = _mockMessages
-                .Where(_ => _.MessageTypeDesc != null && _.MessageTypeDesc.Contains(Constants.TransitGroup, StringComparison.OrdinalIgnoreCase))
+                .Where(_ => _.IsTransitRoute)
                 .Select(_ => _.MessageTypeCode)
                 .Distinct()
                 .ToArray();
@@ -85,7 +84,7 @@ namespace Poc.Data.Infrastructure.Services
 
             return new List<KpiGroupDto>()
             {
-                new KpiGroupDto(
+                new (
                     Title: "Operations",
                     HeaderIcon: "bi bi-backpack-fill",
                     AccentColor: "#1e40af",
@@ -95,7 +94,7 @@ namespace Poc.Data.Infrastructure.Services
                         new MetricKpiDto("Berthing", ["ARR"], GetCount("ARR").ToString(), "pinright"),
                     }
                 ),
-                new KpiGroupDto(
+                new (
                     Title: "Noon Reports",
                     HeaderIcon: "sun", 
                     AccentColor: "#8b5cf6", 
@@ -105,7 +104,7 @@ namespace Poc.Data.Infrastructure.Services
                         new MetricKpiDto("At Port", ["PNO"], GetCount("PNO").ToString(), "bi bi-buildings-fill"), 
                     }
                 ),
-                new KpiGroupDto(
+                new (
                     Title: "Sea Passages",
                     HeaderIcon: "decreaselinespacing",
                     AccentColor: "#06b6d4", 
@@ -116,7 +115,7 @@ namespace Poc.Data.Infrastructure.Services
                         new MetricKpiDto("Transit", transitCodes, GetCount(transitCodes).ToString(), "optionsoutline") 
                     }
                 ),
-                new KpiGroupDto(
+                new (
                     Title: "Fuel",
                     HeaderIcon: "fill",
                     AccentColor: "#b45309",
@@ -126,7 +125,7 @@ namespace Poc.Data.Infrastructure.Services
                         new MetricKpiDto("Bunker Req.", ["BUN"], GetCount("BUN").ToString(), "textdocument")
                     }
                 ),
-                new KpiGroupDto(
+                new (
                     Title: "Other",
                     HeaderIcon: "checkmarkcircle",
                     AccentColor: "#10b981", 

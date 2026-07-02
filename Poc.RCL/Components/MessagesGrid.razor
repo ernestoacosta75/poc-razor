@@ -33,9 +33,10 @@
 <script>
     (function () {
         let activeFilters = [];
+        let _syncSortAsc = false;
 
         // Funzione di filtraggio AJAX globale
-        window.FilterMessagesGrid = function (element) {
+        window.FilterMessagesGrid = (element) => {
             const gridElement = $("#@_gridId");
             if (!gridElement.length) return;
 
@@ -69,21 +70,32 @@
                 url: url,
                 type: "GET",
                 dataType: "json",
-                success: function (newMessages) {
+                success: (newMessages) => {
                     if (gridInstance) {
                         gridInstance.option("dataSource", newMessages);
                         gridInstance.refresh();
                     }
                     $("[id='@(_gridId)-visible']").text(newMessages.length);
                 },
-                error: function (xhr, status, error) {
+                error: (xhr, status, error) => {
                     console.error("Errore durante il filtraggio AJAX:", error);
                 },
-                complete: function () { if (gridInstance) gridInstance.endCustomLoading(); }
+                complete: () => { if (gridInstance) gridInstance.endCustomLoading(); }
             });
         };
 
-        $(document).ready(function () {
+        // Funzione globale per il toggle del sort su syncDate, richiamata dal bottone "Sync Date"
+        window['MsgGrid_@(_gridId)'] = {
+            toggleSort: () => {
+                const gridInstance = $("#@_gridId").dxDataGrid("instance");
+                if (!gridInstance) return;
+                _syncSortAsc = !_syncSortAsc;
+                document.getElementById("@(_gridId + "-sort-arrow")").textContent = _syncSortAsc ? "↑" : "↓";
+                gridInstance.columnOption("syncDate", "sortOrder", _syncSortAsc ? "asc" : "desc");
+            }
+        };
+
+        $(document).ready(() => {
             // Inizializzazione dello Spinner
             window.msgGridLoadPanel = $("#grid-loadpanel").dxLoadPanel({
                 shading: true, shadingColor: "rgba(255, 255, 255, 0.7)",
@@ -109,14 +121,14 @@
                 },
                 scrolling: { mode: "standard" },
                 selection: { mode: "multiple", showCheckBoxesMode: "always" },
-                onRowClick: function (e) {
+                onRowClick: (e) => {
                     window.location.href = "/MessageDetail/" + e.data.id;
                 },
                 columns: [
                     {
                         dataField: "vesselName",
                         caption: "VESSEL",
-                        cellTemplate: function (container, cellInfo) {
+                        cellTemplate: (container, cellInfo) => {
                             const data = cellInfo.data;
                             if (!data) return;
 
@@ -142,7 +154,7 @@
                         dataField: "voyage",
                         caption: "VOYAGE",
                         alignment: "center",
-                        cellTemplate: function (container, cellInfo) {
+                        cellTemplate: (container, cellInfo) => {
                             const data = cellInfo.data;
                             if (!data) return;
 
@@ -159,7 +171,7 @@
                     {
                         dataField: "type",
                         caption: "TYPE",
-                        cellTemplate: function (container, cellInfo) {
+                        cellTemplate: (container, cellInfo) => {
                             const data = cellInfo.data;
                             if (!data) return;
 
@@ -180,7 +192,7 @@
                     {
                         dataField: "messageDate",
                         caption: "DATE",
-                        cellTemplate: function (container, cellInfo) {
+                        cellTemplate: (container, cellInfo) => {
                             const data = cellInfo.data;
                             if (!data) return;
 
@@ -189,7 +201,15 @@
                             const month = !isNaN(dateObj) ? dateObj.toLocaleString('en-US', { month: 'short' }).toUpperCase() : "MAR";
                             const year = !isNaN(dateObj) ? dateObj.getFullYear() : "2026";
                             const time = data.messageTime || "10:30";
-                            const syncDate = data.lastSyncDate || "20/03 12:15";
+
+                            const formatSyncDate = (iso) => {
+                                const d = new Date(iso);
+                                if (isNaN(d)) return "20/03 12:15";
+                                const pad = (n) => String(n).padStart(2, "0");
+                                return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+                            };
+
+                            const syncDate = data.syncDate ? formatSyncDate(data.syncDate) : "20/03 12:15";
 
                             $(container).html(`
                                 <div style="display:flex; flex-direction:column; gap:5px; padding:2px 0; font-family: sans-serif;">
@@ -211,37 +231,41 @@
                         }
                     },
                     {
+                        dataField: "syncDate",
+                        visible: false,
+                        sortOrder: "desc"
+                    },
+                    {
                         dataField: "fromPort",
                         caption: "ROUTE",
                         width: 260,
                         minWidth: 240,
-                        cellTemplate: function (container, cellInfo) {
+                        cellTemplate: (container, cellInfo) => {
                             const data = cellInfo.data;
                             if (!data) return;
 
                             const fromPort = cellInfo.value || "";
                             if (!fromPort) return;
 
-                            const isTransit = fromPort.toUpperCase().includes("CANAL") ||
-                                              fromPort.toUpperCase().includes("SUEZ") ||
-                                              (data.type && data.type.toUpperCase().includes("TRANSIT"));
-
+                            const isTransit = !!data.isTransitRoute;
                             const toPort = data.toPort || "";
                             const hasDestination = toPort !== null && toPort !== undefined && String(toPort).trim() !== "";
 
-                            const portLinkStyle = "color: #2563eb; text-decoration: none; font-weight: 700; cursor: pointer; white-space: nowrap;";
+                            const transitTextStyle = "color: #7c3aed; text-decoration: none; font-weight: 700; cursor: pointer; white-space: nowrap;";
+                            const normalTextStyle = "color: #2563eb; text-decoration: none; font-weight: 700; cursor: pointer; white-space: nowrap;";
+                            const toPortStyle = "color: #111827; text-decoration: none; font-weight: 700; cursor: pointer; white-space: nowrap;";
 
                             $(container).html(`
                                 <div style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; font-family:sans-serif; padding:6px 0; white-space: nowrap; width: max-content;">
                                     <div style="display:flex; align-items:center; gap:5px; flex-shrink: 0;">
                                         ${isTransit ? `<i class="bi bi-arrow-left-right" style="color:#f59e0b; font-size:13px;"></i>` : `<i class="bi bi-geo-alt-fill" style="color:#f59e0b; font-size:14px;"></i>`}
-                                        <span style="${isTransit ? 'color:#f59e0b;' : portLinkStyle}">${fromPort.toUpperCase()}</span>
+                                        <span style="${isTransit ? transitTextStyle : normalTextStyle}">${fromPort.toUpperCase()}</span>
                                     </div>
                                     ${hasDestination ? `
                                         <i class="bi bi-arrow-right" style="color:#f59e0b; font-size:14px; flex-shrink: 0;"></i>
                                         <div style="display:flex; align-items:center; gap:5px; flex-shrink: 0;">
                                             ${data.routeType === "land" ? `<i class="bi bi-triangle-fill" style="color:#eab308; font-size:9px;"></i>` : `<i class="bi bi-flag-fill" style="color:#eab308; font-size:13px;"></i>`}
-                                            <span style="${portLinkStyle}">${toPort.toUpperCase()}</span>
+                                            <span style="${toPortStyle}">${toPort.toUpperCase()}</span>
                                         </div>
                                     ` : ''}
                                 </div>
@@ -252,7 +276,7 @@
                         dataField: "status",
                         caption: "STATUS",
                         alignment: "center",
-                        cellTemplate: function(container, cellInfo) {
+                        cellTemplate: (container, cellInfo) => {
                             const val = cellInfo.value || "";
                             if (!val) return;
                             $(container).html(`

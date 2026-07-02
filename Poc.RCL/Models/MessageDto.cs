@@ -1,10 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Poc.RCL.Models;
 
 public record MessageDto
 {
-    // Costruttore esplicito per non rompere il mock esistente
     public MessageDto(int id, string vesselName, string vesselInitials, string vesselColor, string captainEmail, string office, string voyageCode, string messageTypeDesc, string messageTypeCode, DateTime messageDate, string messageTime, DateTime syncDate, string fromPort, string? toPort, bool isTransitRoute)
     {
         Id = id;
@@ -24,7 +21,6 @@ public record MessageDto
         IsTransitRoute = isTransitRoute;
     }
 
-    // Costruttore vuoto necessario se usi framework di serializzazione
     public MessageDto() { }
 
     public int Id { get; init; }

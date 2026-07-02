@@ -41,7 +41,7 @@
         const syncHistory = @((MarkupString)syncHistoryJson);
         const messageType = @((MarkupString)messageTypeJson);
 
-        function renderTypeBadge() {
+        const renderTypeBadge = () => {
             const theme = window.MessageTypeTheme.resolve(messageType);
             const iconHtml = window.MessageTypeTheme.iconHtml(theme.icon);
 
@@ -57,11 +57,11 @@
             { text: "Sync History", icon: "bi bi-arrow-repeat", count: syncHistory.length }
         ];
 
-        function emptyStateHtml(label) {
+        const emptyStateHtml = (label) => {
             return `<div class="telex-empty-state">${label}</div>`;
         }
 
-        function telexViewTemplate() {
+        const telexViewTemplate = () => {
             const rawText = document.getElementById("@(_id)-raw-content").textContent;
             return `
                 <div class="telex-original-card">
@@ -76,7 +76,7 @@
             `;
         }
 
-        function attachmentsTemplate() {
+        const attachmentsTemplate = () => {
             if (!attachments.length) return emptyStateHtml("No attachments");
             return `<div class="telex-list">` + attachments.map((a, index) => `
                 <div class="telex-list-row">
@@ -92,7 +92,7 @@
             `).join("") + `</div>`;
         }
 
-        function commentsTemplate() {
+        const commentsTemplate = () => {
             if (!comments.length) return emptyStateHtml("No comments");
             return `<div class="telex-list">` + comments.map(c => `
                 <div class="telex-list-row">
@@ -106,11 +106,11 @@
             `).join("") + `</div>`;
         }
 
-        function formatSyncDate(value) {
+        const formatSyncDate = (value) => {
             return new Date(value).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
         }
 
-        function syncHistoryTemplate() {
+        const syncHistoryTemplate = () => {
             if (!syncHistory.length) return emptyStateHtml("No sync history");
             return `<div class="telex-sync-timeline">` + syncHistory.map((s, index) => `
                 <div class="telex-sync-row">
@@ -135,7 +135,7 @@
             `).join("") + `</div>`;
         }
 
-        $(document).ready(function () {
+        $(document).ready(() => {
             renderTypeBadge();
 
             const tabPanel = $("#@(_id)-panel").dxTabPanel({
@@ -154,10 +154,18 @@
             $("#@(_id)-tabs").dxTabs({
                 items: tabItems,
                 selectedIndex: 0,
-                itemTemplate: function (itemData, itemIndex, itemElement) {
+                // itemTemplate è la funzione che DevExtreme richiama automaticamente una volta
+                // per ogni elemento dell'array tabItems.
+                // Performance ogni tab, DevExtreme chiama la funzione passandole:
+                // itemData: l'oggetto delete singolo tab
+                // itemIndex: ononline usato (al momento)
+                // itemElement: Elemento DOM del tab già creato da DevEexteeme, dentro il quale inserire il codice HTML
+                itemTemplate: (itemData, itemIndex, itemElement) => {
                     const badge = itemData.count !== undefined
                         ? `<span class="telex-tab-badge">${itemData.count}</span>`
                         : "";
+
+                    // Inietta l'HTML dentro l'elemento del tab
                     $(itemElement).html(`
                         <span class="telex-tab-item">
                             <i class="${itemData.icon}"></i>
@@ -166,13 +174,14 @@
                         </span>
                     `);
                 },
-                onSelectionChanged: function (e) {
+                // onSelectionChanged serve a sincronizzare il tab selezionato (dxTab) col suo contenuto (dxTabPanel)
+                onSelectionChanged: (e) => {
                     tabPanel.option("selectedIndex", tabItems.indexOf(e.addedItems[0]));
                 }
             });
 
             window["TelexDetail_@(_id)"] = {
-                copyContent: function () {
+                copyContent: () => {
                     const text = document.getElementById("@(_id)-raw-content").textContent;
                     navigator.clipboard.writeText(text);
                 }
